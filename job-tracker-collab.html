@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Tracker (Collaborative)</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; 
+            max-width: 1500px; 
+            margin: 0 auto; 
+            padding: 40px;
+            font-size: 13px;
+            color: #000;
+            background: #fff;
+            line-height: 1.5;
+        }
+        h1 { font-weight: 600; font-size: 28px; margin-bottom: 4px; letter-spacing: -0.5px; }
+        h2 { font-weight: 600; font-size: 14px; letter-spacing: -0.3px; margin-bottom: 16px; }
+        .subtitle { color: #888; font-size: 13px; margin-bottom: 24px; font-weight: 400; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 0; margin-bottom: 32px; border-bottom: 1px solid #e5e5e5; }
+        .tab { padding: 12px 24px; cursor: pointer; border: none; background: none; font-size: 13px; color: #888; border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 500; transition: all 0.2s; }
+        .tab.active { color: #000; border-bottom-color: #000; }
+        .tab:hover { color: #000; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Presence */
+        .presence-bar { background: #fafafa; padding: 12px 16px; border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border: 1px solid #f0f0f0; }
+        .presence-label { font-size: 12px; color: #888; font-weight: 500; }
+        .user-badge { display: inline-flex; align-items: center; gap: 6px; background: #fff; padding: 6px 12px; border-radius: 100px; font-size: 12px; border: 1px solid #e5e5e5; font-weight: 500; }
+        .user-dot { width: 6px; height: 6px; background: #00c853; border-radius: 50%; }
+        .you-badge { background: #000; color: #fff; border-color: #000; }
+        .you-badge .user-dot { background: #fff; }
+        
+        /* Toolbar */
+        .toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+        .btn-primary { background: #000; color: #fff; }
+        .btn-primary:hover { background: #333; transform: translateY(-1px); }
+        .btn-secondary { background: #fff; color: #000; border: 1px solid #e5e5e5; }
+        .btn-secondary:hover { background: #fafafa; border-color: #ccc; }
+        .sync-status { font-size: 12px; color: #00c853; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+        .sync-dot { width: 6px; height: 6px; background: #00c853; border-radius: 50%; }
+        .sync-saving { color: #ff9800; }
+        .sync-saving .sync-dot { background: #ff9800; }
+        
+        /* Tables */
+        table { border-collapse: collapse; width: 100%; }
+        th { background: #fafafa; font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 1px solid #e5e5e5; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; }
+        td { padding: 12px 16px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+        tr:hover { background: #fafafa; }
+        tr:last-child td { border-bottom: none; }
+        
+        /* Inputs */
+        select, input[type="text"] { padding: 8px 12px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 13px; background: #fff; width: 100%; transition: all 0.2s; font-family: inherit; }
+        select:focus, input[type="text"]:focus { outline: none; border-color: #000; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+        select { cursor: pointer; }
+        .company-input { font-weight: 600; }
+        
+        /* Buttons */
+        .delete-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 18px; padding: 4px 8px; transition: all 0.2s; border-radius: 4px; }
+        .delete-btn:hover { color: #000; background: #f5f5f5; }
+        
+        /* Apply link cell layout */
+        .apply-link-cell { display: flex; align-items: center; gap: 8px; }
+        .apply-link-cell input { flex: 1; }
+        .open-link-btn { background: #000; border: none; color: #fff; cursor: pointer; padding: 8px; border-radius: 6px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .open-link-btn:hover { background: #333; transform: translateY(-1px); }
+        .open-link-btn svg { width: 14px; height: 14px; }
+        
+        /* SVG Icons */
+        .icon { display: inline-flex; align-items: center; justify-content: center; }
+        .icon svg { width: 16px; height: 16px; }
+        
+        /* Priority tag */
+        .priority { background: #000; color: #fff; font-size: 9px; padding: 3px 8px; border-radius: 4px; margin-left: 8px; font-weight: 600; letter-spacing: 0.5px; }
+        
+        /* Status colors - minimal */
+        .status-not-started { background: #fff; }
+        .status-waiting-referral { background: #fffbeb; }
+        .status-applied { background: #f0f9ff; }
+        .status-interview { background: #f0fdf4; }
+        .status-rejected { background: #fef2f2; }
+        .status-offer { background: #ecfdf5; }
+        
+        /* History */
+        .history-item { padding: 16px; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+        .history-item:hover { background: #fafafa; }
+        .history-item:last-child { border-bottom: none; }
+        .history-time { color: #888; font-size: 11px; margin-top: 4px; }
+        .history-user { font-weight: 600; color: #000; }
+        .history-action { color: #666; }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: #fff; padding: 40px; border-radius: 16px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+        .modal-content h2 { margin-bottom: 8px; font-size: 24px; }
+        .modal-content p { color: #888; margin-bottom: 24px; }
+        .modal-content input { width: 100%; padding: 14px 16px; font-size: 15px; border: 1px solid #e5e5e5; border-radius: 10px; margin-bottom: 16px; font-family: inherit; }
+        .modal-content input:focus { border-color: #000; outline: none; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+        
+        /* Profile */
+        .profile { background: #fafafa; padding: 20px 24px; margin-bottom: 32px; border-radius: 12px; font-size: 13px; border: 1px solid #f0f0f0; }
+        .profile p { margin: 4px 0; color: #666; }
+        .profile strong { color: #000; font-weight: 600; }
+        
+        /* Layout */
+        .tables-container { display: flex; gap: 40px; flex-wrap: wrap; }
+        .positions-section { flex: 2; min-width: 600px; }
+        .referrals-section { flex: 1; min-width: 320px; background: #fafafa; padding: 24px; border-radius: 12px; border: 1px solid #f0f0f0; height: fit-content; }
+        .referrals-section h2 { margin-top: 0; }
+        .referrals-section table { background: #fff; border-radius: 8px; overflow: hidden; }
+        .referrals-section th { background: #fff; }
+        
+        /* Connection status */
+        .connection-lost { background: #fef2f2; color: #dc2626; padding: 12px; text-align: center; font-size: 12px; display: none; border-radius: 8px; margin-bottom: 16px; font-weight: 500; }
+        .debug-panel { background: #fafafa; border: 1px solid #e5e5e5; padding: 12px 16px; margin-bottom: 16px; border-radius: 8px; font-size: 11px; font-family: 'SF Mono', Monaco, monospace; max-height: 150px; overflow-y: auto; display: none; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ccc; }
+    </style>
+</head>
+<body>
+
+<!-- Name Entry Modal -->
+<div class="modal show" id="nameModal">
+    <div class="modal-content">
+        <h2><svg style="width:28px;height:28px;vertical-align:middle;margin-right:8px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/></svg>Welcome</h2>
+        <p style="color: #666; margin-bottom: 20px;">Enter your name so others know who's editing</p>
+        <input type="text" id="nameInput" placeholder="Your name (e.g., Madalena)" autofocus>
+        <button class="btn btn-primary" onclick="setUserName()" style="width: 100%; padding: 12px;">Join Document</button>
+    </div>
+</div>
+
+<div class="connection-lost" id="connectionLost">
+    <svg style="width:14px;height:14px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>Connection lost. Trying to reconnect...
+</div>
+
+<div class="debug-panel" id="debugPanel"></div>
+
+<h1>Job Application Tracker</h1>
+<p class="subtitle">Tomás Batalha | Collaborative Document</p>
+
+<!-- Who's Online -->
+<div class="presence-bar">
+    <span class="presence-label"><svg style="width:8px;height:8px;vertical-align:middle;margin-right:6px" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#00c853"/></svg>Online now:</span>
+    <div id="onlineUsers"></div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+    <button class="tab active" onclick="showTab('positions')"><svg style="width:14px;height:14px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>Positions & Referrals</button>
+    <button class="tab" onclick="showTab('history')"><svg style="width:14px;height:14px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Change History</button>
+</div>
+
+<!-- Positions Tab -->
+<div class="tab-content active" id="tab-positions">
+    <div class="profile">
+        <p><strong>Background:</strong> Google (LCS), Amazon, EY, Pairwire (Co-Founder)</p>
+        <p><strong>Education:</strong> NUS Singapore, Rotterdam, Nova SBE</p>
+        <p><strong>Languages:</strong> Portuguese, English, Spanish</p>
+        <p><strong>Target:</strong> Sales, BD, SDR, BDR, Account Management | Dublin, London, Amsterdam, Madrid, Lisbon</p>
+    </div>
+
+    <div class="toolbar">
+        <button class="btn btn-primary" onclick="addPosition()">+ Add Position</button>
+        <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
+    </div>
+
+    <div class="tables-container">
+        <div class="positions-section">
+            <h2 style="font-size: 16px; margin-bottom: 10px;"><svg style="width:16px;height:16px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Positions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 30px;"></th>
+                        <th>Company</th>
+                        <th>Role</th>
+                        <th>Location</th>
+                        <th>Apply Link</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="positionsBody"></tbody>
+            </table>
+        </div>
+
+        <div class="referrals-section">
+            <h2 style="font-size: 16px; margin-bottom: 10px;"><svg style="width:16px;height:16px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>Company Referrals</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>Referral Contacts</th>
+                        <th style="width: 30px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="referralsBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- History Tab -->
+<div class="tab-content" id="tab-history">
+    <h2 style="font-size: 16px; margin-bottom: 15px;"><svg style="width:16px;height:16px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Change History</h2>
+    <div id="historyList" style="max-height: 600px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px;">
+        <p style="padding: 20px; color: #999; text-align: center;">Loading history...</p>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+// ============================================
+// FIREBASE CONFIGURATION
+// ============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyAF36Th9wAoWMAvj0mVAw4GDdpkcx9sPVc",
+    authDomain: "job-tracker-tomas.firebaseapp.com",
+    databaseURL: "https://job-tracker-tomas-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "job-tracker-tomas",
+    storageBucket: "job-tracker-tomas.firebasestorage.app",
+    messagingSenderId: "360707138428",
+    appId: "1:360707138428:web:543adb9605d2fbd702faf9"
+};
+
+// Initialize Firebase
+let db = null;
+let currentUser = null;
+let userId = 'user_' + Math.random().toString(36).substr(2, 9);
+let positionKeys = [];
+
+function debug(msg) {
+    console.log('[DEBUG]', msg);
+    const panel = document.getElementById('debugPanel');
+    const time = new Date().toLocaleTimeString();
+    panel.innerHTML = `[${time}] ${msg}<br>` + panel.innerHTML;
+}
+
+try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    debug('✓ Firebase initialized');
+} catch (e) {
+    debug('✗ Firebase error: ' + e.message);
+}
+
+// ============================================
+// USER & PRESENCE
+// ============================================
+function setUserName() {
+    const name = document.getElementById('nameInput').value.trim();
+    if (!name) {
+        alert('Please enter your name');
+        return;
+    }
+    currentUser = name;
+    localStorage.setItem('jobTrackerUserName', name);
+    document.getElementById('nameModal').classList.remove('show');
+    
+    debug('User: ' + name);
+    
+    if (db) {
+        setupPresence();
+        setupListeners();
+        initializeDataIfNeeded();
+    } else {
+        debug('No Firebase - demo mode');
+        loadDemoData();
+    }
+}
+
+function setupPresence() {
+    const presenceRef = db.ref('presence/' + userId);
+    const connectedRef = db.ref('.info/connected');
+    
+    connectedRef.on('value', (snap) => {
+        debug('Connected: ' + snap.val());
+        if (snap.val() === true) {
+            presenceRef.set({
+                name: currentUser,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            presenceRef.onDisconnect().remove();
+            document.getElementById('connectionLost').style.display = 'none';
+            document.getElementById('syncStatus').innerHTML = '<span class="sync-dot"></span> Connected & syncing';
+            document.getElementById('syncStatus').className = 'sync-status';
+        } else {
+            document.getElementById('connectionLost').style.display = 'block';
+        }
+    });
+    
+    db.ref('presence').on('value', (snap) => {
+        const users = snap.val() || {};
+        debug('Online users: ' + Object.values(users).map(u => u.name).join(', '));
+        renderOnlineUsers(users);
+    });
+}
+
+function renderOnlineUsers(users) {
+    const container = document.getElementById('onlineUsers');
+    container.innerHTML = '';
+    
+    Object.entries(users).forEach(([id, user]) => {
+        const isYou = id === userId;
+        const badge = document.createElement('span');
+        badge.className = 'user-badge' + (isYou ? ' you-badge' : '');
+        badge.innerHTML = `<span class="user-dot"></span>${user.name}${isYou ? ' (you)' : ''}`;
+        container.appendChild(badge);
+    });
+}
+
+// ============================================
+// DATA INITIALIZATION
+// ============================================
+function initializeDataIfNeeded() {
+    db.ref('positions').once('value', (snap) => {
+        if (!snap.exists()) {
+            debug('Initializing default data...');
+            const defaults = getDefaultPositions();
+            defaults.forEach((pos, i) => {
+                db.ref('positions').push(pos);
+            });
+            debug('✓ Default data created');
+        } else {
+            debug('✓ Found ' + Object.keys(snap.val()).length + ' positions');
+        }
+    }).catch(e => {
+        debug('✗ Data init error: ' + e.message);
+    });
+}
+
+// ============================================
+// REAL-TIME LISTENERS
+// ============================================
+function setupListeners() {
+    debug('Setting up listeners...');
+    
+    // Positions listener
+    db.ref('positions').on('value', (snap) => {
+        const data = snap.val() || {};
+        positionKeys = Object.keys(data);
+        const positions = positionKeys.map(key => ({ ...data[key], _key: key }));
+        debug('Positions sync: ' + positions.length + ' items');
+        renderPositions(positions);
+        updateReferralsTable(positions);
+    }, (error) => {
+        debug('✗ Positions listener error: ' + error.message);
+    });
+    
+    // Referrals listener
+    db.ref('referrals').on('value', (snap) => {
+        window.companyReferrals = snap.val() || {};
+        debug('Referrals sync');
+        const positions = [];
+        document.querySelectorAll('#positionsBody tr').forEach(row => {
+            const input = row.querySelector('.company-input');
+            if (input) positions.push({ company: input.value });
+        });
+        if (positions.length > 0) {
+            updateReferralsTable(positions);
+        }
+    }, (error) => {
+        debug('✗ Referrals listener error: ' + error.message);
+    });
+    
+    // History listener
+    db.ref('history').orderByChild('timestamp').limitToLast(50).on('value', (snap) => {
+        const history = [];
+        snap.forEach(child => {
+            history.push({ id: child.key, ...child.val() });
+        });
+        renderHistory(history.reverse());
+    });
+}
+
+function loadDemoData() {
+    renderPositions(getDefaultPositions());
+    updateReferralsTable(getDefaultPositions());
+    renderOnlineUsers({ [userId]: { name: currentUser } });
+}
+
+// ============================================
+// POSITIONS
+// ============================================
+function renderPositions(positions) {
+    const tbody = document.getElementById('positionsBody');
+    tbody.innerHTML = '';
+    
+    positions.forEach((pos) => {
+        const key = pos._key || '';
+        const tr = document.createElement('tr');
+        tr.className = 'status-' + (pos.status || 'not-started');
+        tr.dataset.key = key;
+        tr.innerHTML = `
+            <td><button class="delete-btn" onclick="deletePosition('${key}')">×</button></td>
+            <td><input type="text" class="company-input" value="${escapeHtml(pos.company || '')}" onchange="updatePosition('${key}', 'company', this.value)">${pos.priority ? '<span class="priority">TOP</span>' : ''}</td>
+            <td><input type="text" class="role-input" value="${escapeHtml(pos.role || '')}" onchange="updatePosition('${key}', 'role', this.value)"></td>
+            <td><input type="text" class="location-input" value="${escapeHtml(pos.location || '')}" onchange="updatePosition('${key}', 'location', this.value)"></td>
+            <td><div class="apply-link-cell"><input type="text" class="link-input" value="${escapeHtml(pos.link || '')}" onchange="updatePosition('${key}', 'link', this.value)"><button class="open-link-btn" onclick="openLink(this)" title="Open link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></button></div></td>
+            <td>
+                <select class="status-select" onchange="updatePosition('${key}', 'status', this.value)">
+                    <option value="not-started" ${pos.status === 'not-started' ? 'selected' : ''}>Not Started</option>
+                    <option value="waiting-referral" ${pos.status === 'waiting-referral' ? 'selected' : ''}>Waiting for Referral</option>
+                    <option value="applied" ${pos.status === 'applied' ? 'selected' : ''}>Applied</option>
+                    <option value="interview" ${pos.status === 'interview' ? 'selected' : ''}>Interview</option>
+                    <option value="rejected" ${pos.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                    <option value="offer" ${pos.status === 'offer' ? 'selected' : ''}>Offer</option>
+                </select>
+            </td>
+            <td><input type="text" class="notes-input" value="${escapeHtml(pos.notes || '')}" onchange="updatePosition('${key}', 'notes', this.value)"></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function addPosition() {
+    if (!db) return;
+    
+    showSaving();
+    const newPos = {
+        company: '',
+        role: '',
+        location: '',
+        link: '',
+        status: 'not-started',
+        notes: '',
+        createdAt: Date.now()
+    };
+    
+    db.ref('positions').push(newPos)
+        .then(() => {
+            debug('✓ Position added');
+            logHistory('added a new position');
+            showSaved();
+        })
+        .catch(e => debug('✗ Add error: ' + e.message));
+}
+
+function updatePosition(key, field, value) {
+    if (!key || !db) return;
+    
+    showSaving();
+    debug('Updating: ' + field);
+    
+    db.ref('positions/' + key + '/' + field).set(value)
+        .then(() => {
+            debug('✓ Updated ' + field);
+            logHistory(`changed ${field}`);
+            showSaved();
+        })
+        .catch(e => debug('✗ Update error: ' + e.message));
+}
+
+function deletePosition(key) {
+    if (!key || !confirm('Delete this position?')) return;
+    
+    showSaving();
+    db.ref('positions/' + key).remove()
+        .then(() => {
+            debug('✓ Deleted');
+            logHistory('deleted a position');
+            showSaved();
+        })
+        .catch(e => debug('✗ Delete error: ' + e.message));
+}
+
+// ============================================
+// REFERRALS
+// ============================================
+window.companyReferrals = {};
+
+function updateReferralsTable(positions) {
+    const companies = [...new Set(positions.map(p => p.company).filter(c => c && c.trim()))].sort();
+    const tbody = document.getElementById('referralsBody');
+    tbody.innerHTML = '';
+    
+    companies.forEach(company => {
+        const safeCompany = company.replace(/[.#$\/\[\]]/g, '_');
+        const refs = window.companyReferrals[safeCompany] || [];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-weight: 500; vertical-align: top; padding-top: 12px;">${escapeHtml(company)}</td>
+            <td>
+                <div class="referral-list">
+                    ${(Array.isArray(refs) ? refs : []).map((ref, i) => `
+                        <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                            <input type="text" value="${escapeHtml(ref)}" placeholder="linkedin.com/in/..." onchange="updateReferral('${safeCompany}', ${i}, this.value)">
+                            <button class="delete-btn" onclick="removeReferral('${safeCompany}', ${i})">×</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </td>
+            <td style="vertical-align: top;">
+                <button class="btn btn-secondary" onclick="addReferral('${safeCompany}')" style="padding: 4px 8px; font-size: 11px;">+</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function addReferral(company) {
+    if (!window.companyReferrals[company]) {
+        window.companyReferrals[company] = [];
+    }
+    window.companyReferrals[company].push('');
+    
+    if (db) {
+        showSaving();
+        db.ref('referrals/' + company).set(window.companyReferrals[company])
+            .then(() => showSaved());
+    }
+}
+
+function updateReferral(company, index, value) {
+    if (!window.companyReferrals[company]) {
+        window.companyReferrals[company] = [];
+    }
+    window.companyReferrals[company][index] = value;
+    
+    if (db) {
+        showSaving();
+        db.ref('referrals/' + company).set(window.companyReferrals[company])
+            .then(() => showSaved());
+    }
+}
+
+function removeReferral(company, index) {
+    if (window.companyReferrals[company]) {
+        window.companyReferrals[company].splice(index, 1);
+        if (db) {
+            showSaving();
+            db.ref('referrals/' + company).set(window.companyReferrals[company])
+                .then(() => showSaved());
+        }
+    }
+}
+
+// ============================================
+// HISTORY
+// ============================================
+function logHistory(action) {
+    if (!db || !currentUser) return;
+    db.ref('history').push({
+        user: currentUser,
+        action: action,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+}
+
+function renderHistory(history) {
+    const container = document.getElementById('historyList');
+    if (!history.length) {
+        container.innerHTML = '<p style="padding: 20px; color: #999; text-align: center;">No changes yet</p>';
+        return;
+    }
+    container.innerHTML = history.map(item => {
+        const date = new Date(item.timestamp);
+        const timeStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        return `
+            <div class="history-item">
+                <span class="history-user">${escapeHtml(item.user)}</span>
+                <span class="history-action">${escapeHtml(item.action)}</span>
+                <div class="history-time">${timeStr}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ============================================
+// UI
+// ============================================
+function showTab(tabName) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+    document.getElementById('tab-' + tabName).classList.add('active');
+}
+
+function showSaving() {
+    const status = document.getElementById('syncStatus');
+    status.className = 'sync-status sync-saving';
+    status.innerHTML = '<span class="sync-dot"></span> Saving...';
+}
+
+function showSaved() {
+    const status = document.getElementById('syncStatus');
+    status.className = 'sync-status';
+    status.innerHTML = '<span class="sync-dot"></span> Saved <svg style="width:12px;height:12px;vertical-align:middle;margin-left:2px" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+    setTimeout(() => {
+        status.innerHTML = '<span class="sync-dot"></span> Connected & syncing';
+    }, 1500);
+}
+
+function openLink(btn) {
+    const input = btn.previousElementSibling;
+    const url = input.value.trim();
+    if (url) {
+        // Add https if missing
+        const fullUrl = url.startsWith('http') ? url : 'https://' + url;
+        window.open(fullUrl, '_blank');
+    } else {
+        alert('No link entered');
+    }
+}
+
+// ============================================
+// DEFAULT DATA
+// ============================================
+function getDefaultPositions() {
+    return [
+        {company: "Anthropic", role: "Business Development Rep, EMEA", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4969427008", status: "not-started", notes: "", priority: true},
+        {company: "Anthropic", role: "Startup Account Executive UKI", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4978280008", status: "not-started", notes: "", priority: true},
+        {company: "Anthropic", role: "Account Executive, Mid Market UKI", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4948535008", status: "not-started", notes: ""},
+        {company: "Anthropic", role: "Account Executive, Mid Market (German)", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4978301008", status: "not-started", notes: ""},
+        {company: "Anthropic", role: "Strategic Growth AE, Startups", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/5042442008", status: "not-started", notes: ""},
+        {company: "Anthropic", role: "Manager, Growth Startup Sales", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/5042447008", status: "not-started", notes: ""},
+        {company: "Anthropic", role: "Manager, Mid Market Sales EMEA", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/5016196008", status: "not-started", notes: ""},
+        {company: "Anthropic", role: "Product Support Specialist", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4979597008", status: "not-started", notes: ""},
+        {company: "Anthropic", role: "Account Executive, Beneficial Deployments", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/5072140008", status: "not-started", notes: ""},
+        {company: "Anthropic", role: "Customer Success Manager", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/5063099008", status: "not-started", notes: ""},
+        {company: "Anthropic", role: "Customer Activation Manager", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/5021231008", status: "not-started", notes: ""},
+        {company: "Anthropic", role: "Customer Marketing Manager EMEA", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/4971197008", status: "not-started", notes: ""},
+        {company: "Anthropic", role: "Startups Solutions Architect", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/4968059008", status: "not-started", notes: ""},
+        {company: "Adyen", role: "Enterprise Business Development Rep", location: "Berlin", link: "https://careers.adyen.com/vacancies/7335450-enterprise-business-development-representative", status: "not-started", notes: "", priority: true},
+        {company: "Adyen", role: "Enterprise Sales Development Rep", location: "New York", link: "https://careers.adyen.com/vacancies/7504851-enterprise-sales-development-representative", status: "not-started", notes: ""},
+        {company: "Adyen", role: "Enterprise Account Executive", location: "Milan", link: "https://careers.adyen.com/vacancies/7168598-enterprise-account-executive", status: "not-started", notes: ""},
+        {company: "Uber", role: "Sales Trainer", location: "Lisbon", link: "https://www.uber.com/careers/list/151734", status: "not-started", notes: "", priority: true},
+        {company: "Uber", role: "Sales Manager", location: "Toronto", link: "https://www.uber.com/careers/list/148959", status: "not-started", notes: ""},
+        {company: "Palantir", role: "Deployment Strategist", location: "Commercial", link: "https://www.palantir.com/careers/open-positions/", status: "not-started", notes: ""},
+        {company: "Palantir", role: "Account Executive", location: "Int'l Sales", link: "https://www.palantir.com/careers/open-positions/", status: "not-started", notes: ""},
+        {company: "Palantir", role: "Deployment Strategist UK Gov", location: "UK", link: "https://www.palantir.com/careers/open-positions/", status: "not-started", notes: ""},
+        {company: "Datadog", role: "Sales (22 roles)", location: "Dublin", link: "https://careers.datadoghq.com/dublin/", status: "not-started", notes: ""},
+        {company: "Datadog", role: "Sales (17 roles)", location: "Amsterdam", link: "https://careers.datadoghq.com/amsterdam/", status: "not-started", notes: ""},
+        {company: "Datadog", role: "Sales (17 roles)", location: "Madrid", link: "https://careers.datadoghq.com/madrid/", status: "not-started", notes: ""},
+        {company: "Stripe", role: "Sales Team", location: "Dublin HQ", link: "https://stripe.com/jobs/search?teams=Go-to-Market", status: "not-started", notes: ""},
+        {company: "ServiceNow", role: "Digital Sales", location: "Dublin", link: "https://careers.servicenow.com/careers/jobs?department=Digital%20Sales", status: "not-started", notes: ""},
+        {company: "Snowflake", role: "SDR Roles", location: "EMEA", link: "https://careers.snowflake.com/us/en/search-results?keywords=sales", status: "not-started", notes: ""},
+        {company: "Google", role: "Customer Growth / Sales", location: "Dublin", link: "https://careers.google.com", status: "not-started", notes: ""},
+        {company: "Microsoft", role: "Cloud Sales / BDR", location: "Dublin", link: "https://careers.microsoft.com", status: "not-started", notes: ""},
+        {company: "Salesforce", role: "SDR / BDR", location: "Dublin", link: "https://www.salesforce.com/company/careers/", status: "not-started", notes: ""},
+        {company: "Databricks", role: "SDR / BDR", location: "EMEA", link: "https://www.databricks.com/company/careers/open-positions", status: "not-started", notes: ""},
+        {company: "Cloudflare", role: "BDR", location: "Dublin", link: "https://www.cloudflare.com/careers/jobs/", status: "not-started", notes: ""},
+        {company: "Meta", role: "Sales / Partnerships", location: "Dublin", link: "https://www.metacareers.com/", status: "not-started", notes: ""},
+        {company: "Amazon AWS", role: "BDR Cloud", location: "Dublin", link: "https://www.amazon.jobs/", status: "not-started", notes: ""},
+        {company: "OpenAI", role: "Sales / BD", location: "Various", link: "https://openai.com/careers", status: "not-started", notes: ""},
+        {company: "Notion", role: "Sales / BD", location: "Various", link: "https://www.notion.so/careers", status: "not-started", notes: ""},
+    ];
+}
+
+// ============================================
+// INIT
+// ============================================
+const savedName = localStorage.getItem('jobTrackerUserName');
+if (savedName) {
+    document.getElementById('nameInput').value = savedName;
+}
+
+document.getElementById('nameInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') setUserName();
+});
+
+// Triple-click title to show debug
+document.querySelector('h1').addEventListener('click', function(e) {
+    if (e.detail === 3) {
+        const panel = document.getElementById('debugPanel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+});
+</script>
+
+</body>
+</html>

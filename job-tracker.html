@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Tracker</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+            max-width: 1400px; 
+            margin: 20px auto; 
+            padding: 20px;
+            font-size: 13px;
+            color: #333;
+            background: #fff;
+        }
+        h1 { font-weight: 500; font-size: 20px; margin-bottom: 5px; }
+        .subtitle { color: #666; font-size: 12px; margin-bottom: 15px; }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-primary { background: #0066cc; color: white; }
+        .btn-primary:hover { background: #0052a3; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary { background: #f3f4f6; color: #333; border: 1px solid #ddd; }
+        .btn-secondary:hover { background: #e5e7eb; }
+        table { border-collapse: collapse; width: 100%; }
+        th { 
+            background: #f5f5f5; 
+            font-weight: 500; 
+            text-align: left; 
+            padding: 10px 8px;
+            border-bottom: 2px solid #ddd;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+        }
+        td { 
+            padding: 8px; 
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        tr:hover { background: #fafafa; }
+        a { color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        select, input[type="text"] {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            background: white;
+        }
+        select:focus, input[type="text"]:focus { outline: none; border-color: #0066cc; }
+        input[type="text"] { width: 100%; min-width: 120px; }
+        .company-input { font-weight: 500; }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+        }
+        .delete-btn:hover { color: #ef4444; }
+        .priority { 
+            background: #fef2f2; 
+            color: #dc2626; 
+            font-size: 9px; 
+            padding: 2px 6px; 
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+        .profile { 
+            background: #f9f9f9; 
+            padding: 15px; 
+            margin-bottom: 20px; 
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .profile p { margin: 3px 0; }
+        .saved-msg {
+            display: none;
+            color: #22c55e;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .status-not-started { background: #f3f4f6; }
+        .status-waiting-referral { background: #fef3c7; }
+        .status-applied { background: #dbeafe; }
+        .status-interview { background: #d1fae5; }
+        .status-rejected { background: #fee2e2; }
+        .status-offer { background: #bbf7d0; }
+    </style>
+</head>
+<body>
+
+<h1>Job Application Tracker</h1>
+<p class="subtitle">Tomás Batalha | <span id="lastUpdated">Updated 17 Jan 2026</span></p>
+
+<div class="profile">
+    <p><strong>Background:</strong> Google (LCS), Amazon, EY, Pairwire (Co-Founder)</p>
+    <p><strong>Education:</strong> NUS Singapore, Rotterdam, Nova SBE</p>
+    <p><strong>Languages:</strong> Portuguese, English, Spanish</p>
+    <p><strong>Target:</strong> Sales, BD, SDR, BDR, Account Management | Dublin, London, Amsterdam, Madrid, Lisbon</p>
+</div>
+
+<div class="toolbar">
+    <button class="btn btn-primary" onclick="addRow()">+ Add Position</button>
+    <button class="btn btn-success" onclick="saveData()">💾 Save</button>
+    <button class="btn btn-secondary" onclick="exportData()">📤 Export</button>
+    <button class="btn btn-secondary" onclick="importData()">📥 Import</button>
+    <span class="saved-msg" id="savedMsg">✓ Saved!</span>
+</div>
+
+<div style="display: flex; gap: 30px; flex-wrap: wrap;">
+
+<div style="flex: 2; min-width: 600px;">
+<h2 style="font-size: 16px; margin-bottom: 10px;">📋 Positions</h2>
+<table id="jobTable">
+    <thead>
+        <tr>
+            <th style="width: 30px;"></th>
+            <th>Company</th>
+            <th>Role</th>
+            <th>Location</th>
+            <th>Apply Link</th>
+            <th>Status</th>
+            <th>Notes</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody">
+    </tbody>
+</table>
+</div>
+
+<div style="flex: 1; min-width: 350px;">
+<h2 style="font-size: 16px; margin-bottom: 10px;">🤝 Company Referrals <span style="font-weight: normal; font-size: 12px; color: #666;">(auto-updates)</span></h2>
+<table id="companyTable">
+    <thead>
+        <tr>
+            <th>Company</th>
+            <th>Referral Contacts</th>
+            <th style="width: 30px;"></th>
+        </tr>
+    </thead>
+    <tbody id="companyBody">
+    </tbody>
+</table>
+</div>
+
+</div>
+
+<script>
+const defaultData = [
+    {company: "Anthropic", role: "Business Development Rep, EMEA", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4969427008", status: "not-started", notes: "", priority: true},
+    {company: "Anthropic", role: "Startup Account Executive UKI", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4978280008", status: "not-started", notes: "", priority: true},
+    {company: "Anthropic", role: "Account Executive, Mid Market UKI", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4948535008", status: "not-started", notes: ""},
+    {company: "Anthropic", role: "Account Executive, Mid Market (German)", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4978301008", status: "not-started", notes: ""},
+    {company: "Anthropic", role: "Strategic Growth AE, Startups", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/5042442008", status: "not-started", notes: ""},
+    {company: "Anthropic", role: "Manager, Growth Startup Sales", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/5042447008", status: "not-started", notes: ""},
+    {company: "Anthropic", role: "Manager, Mid Market Sales EMEA", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/5016196008", status: "not-started", notes: ""},
+    {company: "Anthropic", role: "Product Support Specialist", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4979597008", status: "not-started", notes: ""},
+    {company: "Anthropic", role: "Account Executive, Beneficial Deployments", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/5072140008", status: "not-started", notes: ""},
+    {company: "Anthropic", role: "Customer Success Manager", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/5063099008", status: "not-started", notes: ""},
+    {company: "Anthropic", role: "Customer Activation Manager", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/5021231008", status: "not-started", notes: ""},
+    {company: "Anthropic", role: "Customer Marketing Manager EMEA", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/4971197008", status: "not-started", notes: ""},
+    {company: "Anthropic", role: "Startups Solutions Architect", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/4968059008", status: "not-started", notes: ""},
+    {company: "Adyen", role: "Enterprise Business Development Rep", location: "Berlin", link: "https://careers.adyen.com/vacancies/7335450-enterprise-business-development-representative", status: "not-started", notes: "", priority: true},
+    {company: "Adyen", role: "Enterprise Sales Development Rep", location: "New York", link: "https://careers.adyen.com/vacancies/7504851-enterprise-sales-development-representative", status: "not-started", notes: ""},
+    {company: "Adyen", role: "Enterprise Account Executive", location: "Milan", link: "https://careers.adyen.com/vacancies/7168598-enterprise-account-executive", status: "not-started", notes: ""},
+    {company: "Uber", role: "Sales Trainer", location: "Lisbon", link: "https://www.uber.com/careers/list/151734", status: "not-started", notes: "", priority: true},
+    {company: "Uber", role: "Sales Manager", location: "Toronto", link: "https://www.uber.com/careers/list/148959", status: "not-started", notes: ""},
+    {company: "Palantir", role: "Deployment Strategist", location: "Commercial", link: "https://www.palantir.com/careers/open-positions/", status: "not-started", notes: ""},
+    {company: "Palantir", role: "Account Executive", location: "Int'l Sales", link: "https://www.palantir.com/careers/open-positions/", status: "not-started", notes: ""},
+    {company: "Palantir", role: "Deployment Strategist UK Gov", location: "UK", link: "https://www.palantir.com/careers/open-positions/", status: "not-started", notes: ""},
+    {company: "Datadog", role: "Sales (22 roles)", location: "Dublin", link: "https://careers.datadoghq.com/dublin/", status: "not-started", notes: ""},
+    {company: "Datadog", role: "Sales (17 roles)", location: "Amsterdam", link: "https://careers.datadoghq.com/amsterdam/", status: "not-started", notes: ""},
+    {company: "Datadog", role: "Sales (17 roles)", location: "Madrid", link: "https://careers.datadoghq.com/madrid/", status: "not-started", notes: ""},
+    {company: "Stripe", role: "Sales Team", location: "Dublin HQ", link: "https://stripe.com/jobs/search?teams=Go-to-Market", status: "not-started", notes: ""},
+    {company: "ServiceNow", role: "Digital Sales", location: "Dublin", link: "https://careers.servicenow.com/careers/jobs?department=Digital%20Sales", status: "not-started", notes: ""},
+    {company: "Snowflake", role: "SDR Roles", location: "EMEA", link: "https://careers.snowflake.com/us/en/search-results?keywords=sales", status: "not-started", notes: ""},
+    {company: "Google", role: "Customer Growth / Sales", location: "Dublin", link: "https://careers.google.com", status: "not-started", notes: ""},
+    {company: "Microsoft", role: "Cloud Sales / BDR", location: "Dublin", link: "https://careers.microsoft.com", status: "not-started", notes: ""},
+    {company: "Salesforce", role: "SDR / BDR", location: "Dublin", link: "https://www.salesforce.com/company/careers/", status: "not-started", notes: ""},
+    {company: "Databricks", role: "SDR / BDR", location: "EMEA", link: "https://www.databricks.com/company/careers/open-positions", status: "not-started", notes: ""},
+    {company: "Cloudflare", role: "BDR", location: "Dublin", link: "https://www.cloudflare.com/careers/jobs/", status: "not-started", notes: ""},
+    {company: "Meta", role: "Sales / Partnerships", location: "Dublin", link: "https://www.metacareers.com/", status: "not-started", notes: ""},
+    {company: "Amazon AWS", role: "BDR Cloud", location: "Dublin", link: "https://www.amazon.jobs/", status: "not-started", notes: ""},
+    {company: "OpenAI", role: "Sales / BD", location: "Various", link: "https://openai.com/careers", status: "not-started", notes: ""},
+    {company: "Notion", role: "Sales / BD", location: "Various", link: "https://www.notion.so/careers", status: "not-started", notes: ""},
+];
+
+// Company referrals data (separate from positions)
+let companyReferrals = {};
+
+function loadData() {
+    const saved = localStorage.getItem('jobTrackerData');
+    const savedReferrals = localStorage.getItem('jobTrackerReferrals');
+    companyReferrals = savedReferrals ? JSON.parse(savedReferrals) : {};
+    return saved ? JSON.parse(saved) : defaultData;
+}
+
+function saveData() {
+    const data = getTableData();
+    localStorage.setItem('jobTrackerData', JSON.stringify(data));
+    localStorage.setItem('jobTrackerReferrals', JSON.stringify(companyReferrals));
+    localStorage.setItem('jobTrackerLastSaved', new Date().toISOString());
+    
+    const msg = document.getElementById('savedMsg');
+    msg.style.display = 'inline';
+    setTimeout(() => msg.style.display = 'none', 2000);
+}
+
+function getTableData() {
+    const rows = document.querySelectorAll('#tableBody tr');
+    const data = [];
+    rows.forEach(row => {
+        data.push({
+            company: row.querySelector('.company-input').value,
+            role: row.querySelector('.role-input').value,
+            location: row.querySelector('.location-input').value,
+            link: row.querySelector('.link-input').value,
+            status: row.querySelector('.status-select').value,
+            notes: row.querySelector('.notes-input').value,
+            priority: row.querySelector('.priority-checkbox')?.checked || false
+        });
+    });
+    return data;
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    data.forEach((item, index) => {
+        tbody.appendChild(createRow(item, index));
+    });
+    updateCompanyTable();
+}
+
+function createRow(item = {}, index) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><button class="delete-btn" onclick="deleteRow(this)" title="Delete">×</button></td>
+        <td>
+            <input type="text" class="company-input" value="${item.company || ''}" placeholder="Company" onchange="updateCompanyTable()">
+            ${item.priority ? '<span class="priority">TOP</span>' : ''}
+            <input type="checkbox" class="priority-checkbox" ${item.priority ? 'checked' : ''} style="display:none;">
+        </td>
+        <td><input type="text" class="role-input" value="${item.role || ''}" placeholder="Role"></td>
+        <td><input type="text" class="location-input" value="${item.location || ''}" placeholder="Location"></td>
+        <td><input type="text" class="link-input" value="${item.link || ''}" placeholder="https://..."></td>
+        <td>
+            <select class="status-select" onchange="updateStatusColor(this)">
+                <option value="not-started" ${item.status === 'not-started' ? 'selected' : ''}>Not Started</option>
+                <option value="waiting-referral" ${item.status === 'waiting-referral' ? 'selected' : ''}>Waiting for Referral</option>
+                <option value="applied" ${item.status === 'applied' ? 'selected' : ''}>Applied</option>
+                <option value="interview" ${item.status === 'interview' ? 'selected' : ''}>Interview</option>
+                <option value="rejected" ${item.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                <option value="offer" ${item.status === 'offer' ? 'selected' : ''}>Offer</option>
+            </select>
+        </td>
+        <td><input type="text" class="notes-input" value="${item.notes || ''}" placeholder="Notes..."></td>
+    `;
+    updateStatusColor(tr.querySelector('.status-select'));
+    return tr;
+}
+
+// === COMPANY REFERRALS TABLE ===
+function updateCompanyTable() {
+    const positions = getTableData();
+    const companies = [...new Set(positions.map(p => p.company).filter(c => c.trim()))].sort();
+    
+    const tbody = document.getElementById('companyBody');
+    tbody.innerHTML = '';
+    
+    companies.forEach(company => {
+        if (!companyReferrals[company]) {
+            companyReferrals[company] = [];
+        }
+        tbody.appendChild(createCompanyRow(company));
+    });
+}
+
+function createCompanyRow(company) {
+    const tr = document.createElement('tr');
+    const referrals = companyReferrals[company] || [];
+    
+    tr.innerHTML = `
+        <td style="font-weight: 500; vertical-align: top; padding-top: 12px;">${company}</td>
+        <td>
+            <div class="referral-list" data-company="${company}">
+                ${referrals.map((ref, i) => `
+                    <div class="referral-item" style="display: flex; gap: 5px; margin-bottom: 5px;">
+                        <input type="text" value="${ref}" placeholder="linkedin.com/in/..." 
+                               style="flex: 1;" onchange="updateReferral('${company}', ${i}, this.value)">
+                        <button class="delete-btn" onclick="removeReferral('${company}', ${i})" style="padding: 2px 6px;">×</button>
+                    </div>
+                `).join('')}
+            </div>
+        </td>
+        <td style="vertical-align: top;">
+            <button class="btn btn-secondary" onclick="addReferral('${company}')" style="padding: 4px 8px; font-size: 11px;">+</button>
+        </td>
+    `;
+    return tr;
+}
+
+function addReferral(company) {
+    if (!companyReferrals[company]) {
+        companyReferrals[company] = [];
+    }
+    companyReferrals[company].push('');
+    updateCompanyTable();
+    // Focus on the new input
+    const inputs = document.querySelectorAll(`[data-company="${company}"] input`);
+    if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+function updateReferral(company, index, value) {
+    if (companyReferrals[company]) {
+        companyReferrals[company][index] = value;
+    }
+}
+
+function removeReferral(company, index) {
+    if (companyReferrals[company]) {
+        companyReferrals[company].splice(index, 1);
+        updateCompanyTable();
+    }
+}
+
+function updateStatusColor(select) {
+    const row = select.closest('tr');
+    row.className = 'status-' + select.value;
+}
+
+function addRow() {
+    const tbody = document.getElementById('tableBody');
+    tbody.insertBefore(createRow({status: 'not-started'}), tbody.firstChild);
+    tbody.firstChild.querySelector('.company-input').focus();
+}
+
+function deleteRow(btn) {
+    if (confirm('Delete this position?')) {
+        btn.closest('tr').remove();
+        updateCompanyTable();
+    }
+}
+
+function exportData() {
+    const data = {
+        positions: getTableData(),
+        referrals: companyReferrals
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'job-tracker-backup.json';
+    a.click();
+}
+
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = event => {
+            try {
+                const data = JSON.parse(event.target.result);
+                // Handle both old format (array) and new format (object with positions/referrals)
+                if (Array.isArray(data)) {
+                    renderTable(data);
+                } else {
+                    if (data.referrals) companyReferrals = data.referrals;
+                    renderTable(data.positions || data);
+                }
+                saveData();
+                alert('Data imported successfully!');
+            } catch (err) {
+                alert('Error importing file');
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+// Auto-save every 30 seconds
+setInterval(saveData, 30000);
+
+// Load on startup
+document.addEventListener('DOMContentLoaded', () => {
+    renderTable(loadData());
+});
+</script>
+
+</body>
+</html>
