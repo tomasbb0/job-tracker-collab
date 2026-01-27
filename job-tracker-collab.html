@@ -76,8 +76,14 @@
         .icon { display: inline-flex; align-items: center; justify-content: center; }
         .icon svg { width: 16px; height: 16px; }
         
-        /* Priority tag */
-        .priority { background: #000; color: #fff; font-size: 9px; padding: 3px 8px; border-radius: 4px; margin-left: 8px; font-weight: 600; letter-spacing: 0.5px; }
+        /* Priority tag - clickable */
+        .priority { background: #000; color: #fff; font-size: 9px; padding: 3px 8px; border-radius: 4px; margin-left: 8px; font-weight: 600; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s; }
+        .priority:hover { background: #333; transform: scale(1.05); }
+        .priority-btn { background: transparent; border: 1px dashed #ccc; color: #999; font-size: 9px; padding: 3px 8px; border-radius: 4px; margin-left: 8px; cursor: pointer; transition: all 0.2s; }
+        .priority-btn:hover { border-color: #000; color: #000; }
+        
+        /* Years experience */
+        .years-input { width: 60px !important; text-align: center; }
         
         /* Status colors - minimal */
         .status-not-started { background: #fff; }
@@ -185,6 +191,7 @@
                         <th>Company</th>
                         <th>Role</th>
                         <th>Location</th>
+                        <th style="width: 60px;">Yrs Exp</th>
                         <th>Apply Link</th>
                         <th>Status</th>
                         <th>Notes</th>
@@ -404,11 +411,15 @@ function renderPositions(positions) {
         const tr = document.createElement('tr');
         tr.className = 'status-' + (pos.status || 'not-started');
         tr.dataset.key = key;
+        const priorityHtml = pos.priority 
+            ? `<span class="priority" onclick="togglePriority('${key}', false)" title="Click to remove TOP">TOP</span>`
+            : `<button class="priority-btn" onclick="togglePriority('${key}', true)" title="Mark as TOP">+ TOP</button>`;
         tr.innerHTML = `
             <td><button class="delete-btn" onclick="deletePosition('${key}')">×</button></td>
-            <td><input type="text" class="company-input" value="${escapeHtml(pos.company || '')}" onchange="updatePosition('${key}', 'company', this.value)">${pos.priority ? '<span class="priority">TOP</span>' : ''}</td>
+            <td><input type="text" class="company-input" value="${escapeHtml(pos.company || '')}" onchange="updatePosition('${key}', 'company', this.value)">${priorityHtml}</td>
             <td><input type="text" class="role-input" value="${escapeHtml(pos.role || '')}" onchange="updatePosition('${key}', 'role', this.value)"></td>
             <td><input type="text" class="location-input" value="${escapeHtml(pos.location || '')}" onchange="updatePosition('${key}', 'location', this.value)"></td>
+            <td><input type="text" class="years-input" value="${escapeHtml(pos.yearsExp || '')}" onchange="updatePosition('${key}', 'yearsExp', this.value)" placeholder="0-3"></td>
             <td><div class="apply-link-cell"><input type="text" class="link-input" value="${escapeHtml(pos.link || '')}" onchange="updatePosition('${key}', 'link', this.value)"><button class="open-link-btn" onclick="openLink(this)" title="Open link"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></button></div></td>
             <td>
                 <select class="status-select" onchange="updatePosition('${key}', 'status', this.value)">
@@ -426,6 +437,18 @@ function renderPositions(positions) {
     });
 }
 
+function togglePriority(key, value) {
+    if (!key || !db) return;
+    showSaving();
+    db.ref('positions/' + key + '/priority').set(value)
+        .then(() => {
+            debug('✓ Priority toggled');
+            logHistory(value ? 'marked position as TOP' : 'removed TOP from position');
+            showSaved();
+        })
+        .catch(e => debug('✗ Priority toggle error: ' + e.message));
+}
+
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -439,9 +462,11 @@ function addPosition() {
         company: '',
         role: '',
         location: '',
+        yearsExp: '',
         link: '',
         status: 'not-started',
         notes: '',
+        priority: false,
         createdAt: Date.now()
     };
     
@@ -622,46 +647,91 @@ function openLink(btn) {
 }
 
 // ============================================
-// DEFAULT DATA
+// DEFAULT DATA - ENTRY LEVEL (1-3 YRS ONLY)
 // ============================================
 function getDefaultPositions() {
     return [
-        {company: "Anthropic", role: "Business Development Rep, EMEA", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4969427008", status: "not-started", notes: "", priority: true},
-        {company: "Anthropic", role: "Startup Account Executive UKI", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4978280008", status: "not-started", notes: "", priority: true},
-        {company: "Anthropic", role: "Account Executive, Mid Market UKI", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4948535008", status: "not-started", notes: ""},
-        {company: "Anthropic", role: "Account Executive, Mid Market (German)", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4978301008", status: "not-started", notes: ""},
-        {company: "Anthropic", role: "Strategic Growth AE, Startups", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/5042442008", status: "not-started", notes: ""},
-        {company: "Anthropic", role: "Manager, Growth Startup Sales", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/5042447008", status: "not-started", notes: ""},
-        {company: "Anthropic", role: "Manager, Mid Market Sales EMEA", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/5016196008", status: "not-started", notes: ""},
-        {company: "Anthropic", role: "Product Support Specialist", location: "Dublin", link: "https://job-boards.greenhouse.io/anthropic/jobs/4979597008", status: "not-started", notes: ""},
-        {company: "Anthropic", role: "Account Executive, Beneficial Deployments", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/5072140008", status: "not-started", notes: ""},
-        {company: "Anthropic", role: "Customer Success Manager", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/5063099008", status: "not-started", notes: ""},
-        {company: "Anthropic", role: "Customer Activation Manager", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/5021231008", status: "not-started", notes: ""},
-        {company: "Anthropic", role: "Customer Marketing Manager EMEA", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/4971197008", status: "not-started", notes: ""},
-        {company: "Anthropic", role: "Startups Solutions Architect", location: "London", link: "https://job-boards.greenhouse.io/anthropic/jobs/4968059008", status: "not-started", notes: ""},
-        {company: "Adyen", role: "Enterprise Business Development Rep", location: "Berlin", link: "https://careers.adyen.com/vacancies/7335450-enterprise-business-development-representative", status: "not-started", notes: "", priority: true},
-        {company: "Adyen", role: "Enterprise Sales Development Rep", location: "New York", link: "https://careers.adyen.com/vacancies/7504851-enterprise-sales-development-representative", status: "not-started", notes: ""},
-        {company: "Adyen", role: "Enterprise Account Executive", location: "Milan", link: "https://careers.adyen.com/vacancies/7168598-enterprise-account-executive", status: "not-started", notes: ""},
-        {company: "Uber", role: "Sales Trainer", location: "Lisbon", link: "https://www.uber.com/careers/list/151734", status: "not-started", notes: "", priority: true},
-        {company: "Uber", role: "Sales Manager", location: "Toronto", link: "https://www.uber.com/careers/list/148959", status: "not-started", notes: ""},
-        {company: "Palantir", role: "Deployment Strategist", location: "Commercial", link: "https://www.palantir.com/careers/open-positions/", status: "not-started", notes: ""},
-        {company: "Palantir", role: "Account Executive", location: "Int'l Sales", link: "https://www.palantir.com/careers/open-positions/", status: "not-started", notes: ""},
-        {company: "Palantir", role: "Deployment Strategist UK Gov", location: "UK", link: "https://www.palantir.com/careers/open-positions/", status: "not-started", notes: ""},
-        {company: "Datadog", role: "Sales (22 roles)", location: "Dublin", link: "https://careers.datadoghq.com/dublin/", status: "not-started", notes: ""},
-        {company: "Datadog", role: "Sales (17 roles)", location: "Amsterdam", link: "https://careers.datadoghq.com/amsterdam/", status: "not-started", notes: ""},
-        {company: "Datadog", role: "Sales (17 roles)", location: "Madrid", link: "https://careers.datadoghq.com/madrid/", status: "not-started", notes: ""},
-        {company: "Stripe", role: "Sales Team", location: "Dublin HQ", link: "https://stripe.com/jobs/search?teams=Go-to-Market", status: "not-started", notes: ""},
-        {company: "ServiceNow", role: "Digital Sales", location: "Dublin", link: "https://careers.servicenow.com/careers/jobs?department=Digital%20Sales", status: "not-started", notes: ""},
-        {company: "Snowflake", role: "SDR Roles", location: "EMEA", link: "https://careers.snowflake.com/us/en/search-results?keywords=sales", status: "not-started", notes: ""},
-        {company: "Google", role: "Customer Growth / Sales", location: "Dublin", link: "https://careers.google.com", status: "not-started", notes: ""},
-        {company: "Microsoft", role: "Cloud Sales / BDR", location: "Dublin", link: "https://careers.microsoft.com", status: "not-started", notes: ""},
-        {company: "Salesforce", role: "SDR / BDR", location: "Dublin", link: "https://www.salesforce.com/company/careers/", status: "not-started", notes: ""},
-        {company: "Databricks", role: "SDR / BDR", location: "EMEA", link: "https://www.databricks.com/company/careers/open-positions", status: "not-started", notes: ""},
-        {company: "Cloudflare", role: "BDR", location: "Dublin", link: "https://www.cloudflare.com/careers/jobs/", status: "not-started", notes: ""},
-        {company: "Meta", role: "Sales / Partnerships", location: "Dublin", link: "https://www.metacareers.com/", status: "not-started", notes: ""},
-        {company: "Amazon AWS", role: "BDR Cloud", location: "Dublin", link: "https://www.amazon.jobs/", status: "not-started", notes: ""},
-        {company: "OpenAI", role: "Sales / BD", location: "Various", link: "https://openai.com/careers", status: "not-started", notes: ""},
-        {company: "Notion", role: "Sales / BD", location: "Various", link: "https://www.notion.so/careers", status: "not-started", notes: ""},
+        // === ANTHROPIC (AI - Top Tier) ===
+        {company: "Anthropic", role: "Business Development Rep, EMEA", location: "Dublin", yearsExp: "1-2", link: "https://job-boards.greenhouse.io/anthropic/jobs/4969427008", status: "not-started", notes: "Entry-level BDR role", priority: true},
+        {company: "Anthropic", role: "Product Support Specialist", location: "Dublin", yearsExp: "1-3", link: "https://job-boards.greenhouse.io/anthropic/jobs/4979597008", status: "not-started", notes: "Customer-facing support", priority: true},
+        {company: "Anthropic", role: "Customer Activation Manager", location: "London", yearsExp: "2-3", link: "https://job-boards.greenhouse.io/anthropic/jobs/5021231008", status: "not-started", notes: ""},
+        
+        // === OPENAI (AI - Top Tier) ===
+        {company: "OpenAI", role: "Emerging Talent Programs", location: "San Francisco", yearsExp: "0-2", link: "https://openai.com/careers/emerging-talent/", status: "not-started", notes: "Early career program", priority: true},
+        {company: "OpenAI", role: "Business Operations", location: "San Francisco", yearsExp: "1-3", link: "https://openai.com/careers/search/", status: "not-started", notes: "Check for BD openings"},
+        
+        // === GOOGLE (Tech Giant) ===
+        {company: "Google", role: "Associate Account Strategist", location: "Dublin", yearsExp: "0-2", link: "https://www.google.com/about/careers/applications/jobs/results/?location=Dublin&q=associate%20account", status: "not-started", notes: "Entry-level sales", priority: true},
+        {company: "Google", role: "Sales Development Representative", location: "Dublin", yearsExp: "0-1", link: "https://www.google.com/about/careers/applications/jobs/results/?location=Dublin&q=sales%20development", status: "not-started", notes: ""},
+        
+        // === MICROSOFT (Tech Giant) ===
+        {company: "Microsoft", role: "Account Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.microsoft.com/us/en/search-results?keywords=account%20development%20Dublin", status: "not-started", notes: "Entry sales role", priority: true},
+        {company: "Microsoft", role: "Customer Success Account Manager", location: "Dublin", yearsExp: "1-3", link: "https://careers.microsoft.com/us/en/search-results?keywords=customer%20success%20Dublin", status: "not-started", notes: ""},
+        
+        // === META (Tech Giant) ===
+        {company: "Meta", role: "Client Solutions Manager", location: "Dublin", yearsExp: "1-3", link: "https://www.metacareers.com/jobs?offices[0]=Dublin%2C%20Ireland", status: "not-started", notes: "Sales/partnerships", priority: true},
+        {company: "Meta", role: "Partner Manager", location: "Dublin", yearsExp: "2-3", link: "https://www.metacareers.com/jobs?offices[0]=Dublin%2C%20Ireland", status: "not-started", notes: ""},
+        
+        // === STRIPE (Fintech - Top Tier) ===
+        {company: "Stripe", role: "Associate, Scaled Sales", location: "Dublin", yearsExp: "0-2", link: "https://stripe.com/jobs/search?teams=Go-to-Market&office_locations=Dublin", status: "not-started", notes: "Entry sales", priority: true},
+        {company: "Stripe", role: "Sales Development Representative", location: "Dublin", yearsExp: "0-1", link: "https://stripe.com/jobs/search?teams=Go-to-Market&office_locations=Dublin", status: "not-started", notes: ""},
+        
+        // === ADYEN (Fintech - Top Tier) ===
+        {company: "Adyen", role: "Business Development Representative", location: "Amsterdam", yearsExp: "0-2", link: "https://careers.adyen.com/vacancies?team=Sales", status: "not-started", notes: "Entry BDR", priority: true},
+        {company: "Adyen", role: "Account Manager", location: "Amsterdam", yearsExp: "1-3", link: "https://careers.adyen.com/vacancies/7436701-account-manager", status: "not-started", notes: ""},
+        {company: "Adyen", role: "Account Manager", location: "Berlin", yearsExp: "1-3", link: "https://careers.adyen.com/vacancies/7340032-account-manager", status: "not-started", notes: ""},
+        
+        // === DATABRICKS (Data/AI) ===
+        {company: "Databricks", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.databricks.com/company/careers/sales-development/business-development-representative-7258972002", status: "not-started", notes: "Entry BDR", priority: true},
+        {company: "Databricks", role: "BDR", location: "Amsterdam", yearsExp: "0-2", link: "https://www.databricks.com/company/careers/sales-development/bdr-8034217002", status: "not-started", notes: ""},
+        
+        // === DATADOG (Observability) ===
+        {company: "Datadog", role: "Sales Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.datadoghq.com/all-jobs/?search=SDR&team=Sales&location=Dublin", status: "not-started", notes: "Entry SDR", priority: true},
+        {company: "Datadog", role: "Technical Account Manager", location: "Dublin", yearsExp: "1-3", link: "https://careers.datadoghq.com/detail/7555001/", status: "not-started", notes: ""},
+        {company: "Datadog", role: "Partner Sales Manager - UKI", location: "London", yearsExp: "2-3", link: "https://careers.datadoghq.com/detail/7555656/", status: "not-started", notes: ""},
+        
+        // === SNOWFLAKE (Data Cloud) ===
+        {company: "Snowflake", role: "Sales Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.snowflake.com/us/en/c/sales-development-jobs", status: "not-started", notes: "3 SDR openings", priority: true},
+        
+        // === SERVICENOW (Enterprise SaaS) ===
+        {company: "ServiceNow", role: "Associate Customer Success Manager", location: "Dublin", yearsExp: "1-3", link: "https://careers.servicenow.com/careers/jobs/743999974788314", status: "not-started", notes: "Dutch/Nordics speaker", priority: false},
+        {company: "ServiceNow", role: "Territory Partner Seller", location: "Dublin", yearsExp: "2-3", link: "https://careers.servicenow.com/careers/jobs?location=Dublin", status: "not-started", notes: "French speaker"},
+        
+        // === SALESFORCE (CRM Giant) ===
+        {company: "Salesforce", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.salesforce.com/en/jobs/?search=BDR&location=Dublin", status: "not-started", notes: "Entry BDR", priority: true},
+        {company: "Salesforce", role: "Sales Development Representative", location: "Dublin", yearsExp: "0-1", link: "https://careers.salesforce.com/en/jobs/?search=SDR&location=Dublin", status: "not-started", notes: ""},
+        
+        // === CLOUDFLARE (Security/CDN) ===
+        {company: "Cloudflare", role: "Business Development Representative", location: "London", yearsExp: "0-2", link: "https://www.cloudflare.com/careers/jobs/?department=Sales&location=London", status: "not-started", notes: "Entry BDR", priority: false},
+        
+        // === AMAZON AWS ===
+        {company: "Amazon AWS", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.amazon.jobs/en/search?base_query=BDR&loc_query=Dublin", status: "not-started", notes: "Cloud sales entry", priority: true},
+        {company: "Amazon AWS", role: "Account Manager", location: "Dublin", yearsExp: "1-3", link: "https://www.amazon.jobs/en/search?base_query=account%20manager&loc_query=Dublin", status: "not-started", notes: ""},
+        
+        // === PALANTIR (Data Analytics) ===
+        {company: "Palantir", role: "Business Development Associate", location: "London", yearsExp: "0-2", link: "https://www.palantir.com/careers/open-positions/?team=Business%20Development", status: "not-started", notes: "Entry BD role", priority: true},
+        
+        // === NOTION (Productivity) ===
+        {company: "Notion", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.notion.com/careers", status: "not-started", notes: "Entry sales", priority: false},
+        
+        // === HUBSPOT (Marketing/Sales SaaS) ===
+        {company: "HubSpot", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.hubspot.com/careers/jobs?location=Dublin&department=Sales", status: "not-started", notes: "Great for entry", priority: true},
+        {company: "HubSpot", role: "Sales Development Representative", location: "Dublin", yearsExp: "0-1", link: "https://www.hubspot.com/careers/jobs?location=Dublin&department=Sales", status: "not-started", notes: ""},
+        
+        // === LINKEDIN (Microsoft) ===
+        {company: "LinkedIn", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.linkedin.com/search?keywords=BDR&location=Dublin", status: "not-started", notes: "Entry sales", priority: true},
+        
+        // === ATLASSIAN (Collaboration) ===
+        {company: "Atlassian", role: "Sales Development Representative", location: "Amsterdam", yearsExp: "0-2", link: "https://www.atlassian.com/company/careers/all-jobs?location=Amsterdam&team=Sales", status: "not-started", notes: "Entry SDR", priority: false},
+        
+        // === MONGODB (Database) ===
+        {company: "MongoDB", role: "Sales Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.mongodb.com/careers/jobs?location=Dublin&department=Sales", status: "not-started", notes: "Entry SDR", priority: false},
+        
+        // === INTERCOM (Customer Messaging) ===
+        {company: "Intercom", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.intercom.com/careers?location=Dublin", status: "not-started", notes: "HQ in Dublin!", priority: true},
+        
+        // === TWILIO (Communications API) ===
+        {company: "Twilio", role: "Sales Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.twilio.com/company/jobs?location=Dublin", status: "not-started", notes: "Entry SDR", priority: false},
     ];
 }
 
