@@ -104,6 +104,7 @@
         /* Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
         .modal.show { display: flex; }
+        .modal.hidden { display: none !important; visibility: hidden !important; }
         .modal-content { background: #fff; padding: 40px; border-radius: 16px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
         .modal-content h2 { margin-bottom: 8px; font-size: 24px; }
         .modal-content p { color: #888; margin-bottom: 24px; }
@@ -319,28 +320,38 @@ try {
 // USER & PRESENCE
 // ============================================
 function setUserName() {
-    const name = document.getElementById('nameInput').value.trim();
-    if (!name) {
-        alert('Please enter your name');
-        return;
-    }
-    currentUser = name;
-    localStorage.setItem('jobTrackerUserName', name);
-    
-    // Close modal properly
-    const modal = document.getElementById('nameModal');
-    modal.classList.remove('show');
-    modal.style.display = 'none';
-    
-    debug('User: ' + name);
-    
-    if (db) {
-        setupPresence();
-        setupListeners();
-        initializeDataIfNeeded();
-    } else {
-        debug('No Firebase - demo mode');
-        loadDemoData();
+    try {
+        const nameInput = document.getElementById('nameInput');
+        const name = nameInput ? nameInput.value.trim() : '';
+        if (!name) {
+            alert('Please enter your name');
+            return;
+        }
+        currentUser = name;
+        localStorage.setItem('jobTrackerUserName', name);
+        
+        // Close modal - use multiple methods to ensure it works
+        const modal = document.getElementById('nameModal');
+        if (modal) {
+            modal.classList.remove('show');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            modal.style.visibility = 'hidden';
+        }
+        
+        debug('User: ' + name);
+        
+        if (db) {
+            setupPresence();
+            setupListeners();
+            initializeDataIfNeeded();
+        } else {
+            debug('No Firebase - demo mode');
+            loadDemoData();
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+        console.error(err);
     }
 }
 
