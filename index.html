@@ -181,13 +181,41 @@
 </head>
 <body>
 
+<!-- Early script to define setUserName before the button -->
+<script>
+window.setUserName = function() {
+    var nameInput = document.getElementById('nameInput');
+    var name = nameInput ? nameInput.value.trim() : '';
+    if (!name) {
+        alert('Please enter your name');
+        return;
+    }
+    window.currentUser = name;
+    localStorage.setItem('jobTrackerUserName', name);
+    
+    // Close modal
+    var modal = document.getElementById('nameModal');
+    if (modal) {
+        modal.classList.remove('show');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        modal.style.visibility = 'hidden';
+    }
+    
+    // Will be called later after Firebase loads
+    if (window.onUserJoined) {
+        window.onUserJoined(name);
+    }
+};
+</script>
+
 <!-- Name Entry Modal -->
 <div class="modal show" id="nameModal">
     <div class="modal-content">
         <h2><svg style="width:28px;height:28px;vertical-align:middle;margin-right:8px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/></svg>Welcome</h2>
         <p style="color: #666; margin-bottom: 20px;">Enter your name so others know who's editing</p>
         <input type="text" id="nameInput" placeholder="Your name (e.g., Madalena)" autofocus>
-        <button class="btn btn-primary" onclick="setUserName()" style="width: 100%; padding: 12px;">Join Document</button>
+        <button class="btn btn-primary" onclick="window.setUserName()" style="width: 100%; padding: 12px;">Join Document</button>
     </div>
 </div>
 
@@ -278,10 +306,10 @@
 
 <script>
 // ============================================
-// USER & PRESENCE - Define setUserName FIRST so it's always available
+// MAIN APPLICATION SCRIPT
 // ============================================
 let db = null;
-let currentUser = null;
+let currentUser = window.currentUser || null;
 let userId = localStorage.getItem('jobTrackerUserId');
 if (!userId) {
     userId = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
@@ -298,41 +326,20 @@ function debug(msg) {
     }
 }
 
-function setUserName() {
-    try {
-        const nameInput = document.getElementById('nameInput');
-        const name = nameInput ? nameInput.value.trim() : '';
-        if (!name) {
-            alert('Please enter your name');
-            return;
-        }
-        currentUser = name;
-        localStorage.setItem('jobTrackerUserName', name);
-        
-        // Close modal - use multiple methods to ensure it works
-        const modal = document.getElementById('nameModal');
-        if (modal) {
-            modal.classList.remove('show');
-            modal.classList.add('hidden');
-            modal.style.display = 'none';
-            modal.style.visibility = 'hidden';
-        }
-        
-        debug('User: ' + name);
-        
-        if (db) {
-            setupPresence();
-            setupListeners();
-            initializeDataIfNeeded();
-        } else {
-            debug('No Firebase - demo mode');
-            loadDemoData();
-        }
-    } catch (err) {
-        alert('Error in setUserName: ' + err.message);
-        console.error(err);
+// Called from the early script when user joins
+window.onUserJoined = function(name) {
+    currentUser = name;
+    debug('User: ' + name);
+    
+    if (db) {
+        setupPresence();
+        setupListeners();
+        initializeDataIfNeeded();
+    } else {
+        debug('No Firebase - demo mode');
+        loadDemoData();
     }
-}
+};
 
 // ============================================
 // FIREBASE CONFIGURATION
