@@ -178,6 +178,7 @@
 
     <div class="toolbar">
         <button class="btn btn-primary" onclick="addPosition()">+ Add Position</button>
+        <button class="btn btn-secondary" onclick="resetToDefaults()" style="background: #ff5722; color: #fff; border: none;">🔄 Load 40 New Jobs</button>
         <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
     </div>
 
@@ -336,16 +337,34 @@ function initializeDataIfNeeded() {
     db.ref('positions').once('value', (snap) => {
         if (!snap.exists()) {
             debug('Initializing default data...');
-            const defaults = getDefaultPositions();
-            defaults.forEach((pos, i) => {
-                db.ref('positions').push(pos);
-            });
-            debug('✓ Default data created');
+            loadDefaultPositions();
         } else {
             debug('✓ Found ' + Object.keys(snap.val()).length + ' positions');
         }
     }).catch(e => {
         debug('✗ Data init error: ' + e.message);
+    });
+}
+
+function loadDefaultPositions() {
+    const defaults = getDefaultPositions();
+    defaults.forEach((pos, i) => {
+        db.ref('positions').push(pos);
+    });
+    debug('✓ Default data created');
+}
+
+function resetToDefaults() {
+    if (!confirm('⚠️ This will DELETE all current positions and load the 40 new entry-level jobs. Continue?')) return;
+    showSaving();
+    db.ref('positions').remove().then(() => {
+        loadDefaultPositions();
+        logHistory('reset positions to default entry-level jobs');
+        showSaved();
+        alert('✅ Loaded 40 new entry-level positions!');
+    }).catch(e => {
+        debug('✗ Reset error: ' + e.message);
+        alert('Error: ' + e.message);
     });
 }
 
