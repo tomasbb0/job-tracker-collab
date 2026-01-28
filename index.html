@@ -344,15 +344,25 @@ function debug(msg) {
 // Called from the early script when user joins
 window.onUserJoined = function(name) {
     currentUser = name;
-    debug('User: ' + name);
+    debug('User joined: ' + name);
     
     if (db) {
+        debug('Setting up presence and listeners...');
         setupPresence();
         setupListeners();
         initializeDataIfNeeded();
     } else {
-        debug('No Firebase - demo mode');
-        loadDemoData();
+        debug('✗ Firebase not connected - retrying in 1s...');
+        setTimeout(function() {
+            if (db) {
+                debug('Retry successful, setting up...');
+                setupPresence();
+                setupListeners();
+                initializeDataIfNeeded();
+            } else {
+                alert('Error: Could not connect to Firebase. Please refresh the page.');
+            }
+        }, 1000);
     }
 };
 
@@ -962,23 +972,16 @@ if (savedName) {
     document.getElementById('nameInput').value = savedName;
 }
 
-// Check if user already joined before Firebase loaded
-if (window.pendingUserName) {
-    currentUser = window.pendingUserName;
-    debug('User (pending): ' + currentUser);
-    if (db) {
-        setupPresence();
-        setupListeners();
-        initializeDataIfNeeded();
-    }
-} else if (savedName && window.currentUser) {
-    // User joined via the early script
-    currentUser = window.currentUser;
-    if (db) {
-        setupPresence();
-        setupListeners();
-        initializeDataIfNeeded();
-    }
+// Auto-join if user has saved name and skip modal
+const autoJoinName = savedName || window.currentUser || window.pendingUserName;
+if (autoJoinName && db) {
+    currentUser = autoJoinName;
+    document.getElementById('nameModal').classList.add('hidden');
+    document.getElementById('nameModal').style.display = 'none';
+    debug('Auto-joining as: ' + currentUser);
+    setupPresence();
+    setupListeners();
+    initializeDataIfNeeded();
 }
 
 document.getElementById('nameInput').addEventListener('keypress', (e) => {
