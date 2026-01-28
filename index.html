@@ -292,7 +292,12 @@ const firebaseConfig = {
 // Initialize Firebase
 let db = null;
 let currentUser = null;
-let userId = 'user_' + Math.random().toString(36).substr(2, 9);
+// Use persistent userId per device (stored in localStorage) to prevent duplicate presence entries
+let userId = localStorage.getItem('jobTrackerUserId');
+if (!userId) {
+    userId = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+    localStorage.setItem('jobTrackerUserId', userId);
+}
 let positionKeys = [];
 
 function debug(msg) {
@@ -321,7 +326,11 @@ function setUserName() {
     }
     currentUser = name;
     localStorage.setItem('jobTrackerUserName', name);
-    document.getElementById('nameModal').classList.remove('show');
+    
+    // Close modal properly
+    const modal = document.getElementById('nameModal');
+    modal.classList.remove('show');
+    modal.style.display = 'none';
     
     debug('User: ' + name);
     
@@ -366,8 +375,17 @@ function renderOnlineUsers(users) {
     const container = document.getElementById('onlineUsers');
     container.innerHTML = '';
     
+    // Deduplicate users by name (same person in multiple tabs)
+    const uniqueUsers = {};
     Object.entries(users).forEach(([id, user]) => {
-        const isYou = id === userId;
+        const name = user.name;
+        if (!uniqueUsers[name] || id === userId) {
+            uniqueUsers[name] = { id, user };
+        }
+    });
+    
+    Object.entries(uniqueUsers).forEach(([name, {id, user}]) => {
+        const isYou = id === userId || user.name === currentUser;
         const badge = document.createElement('span');
         badge.className = 'user-badge' + (isYou ? ' you-badge' : '');
         badge.innerHTML = `<span class="user-dot"></span>${user.name}${isYou ? ' (you)' : ''}`;
