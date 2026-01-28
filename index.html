@@ -178,7 +178,7 @@
 
     <div class="toolbar">
         <button class="btn btn-primary" onclick="addPosition()">+ Add Position</button>
-        <button class="btn btn-secondary" onclick="resetToDefaults()" style="background: #4CAF50; color: #fff; border: none;">➕ Add Verified Jobs</button>
+        <button class="btn btn-secondary" onclick="cleanDuplicates()" style="background: #dc3545; color: #fff; border: none;">🧹 Remove Duplicates & Bad Links</button>
         <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
     </div>
 
@@ -382,13 +382,54 @@ function loadDefaultPositions() {
     });
 }
 
-function resetToDefaults() {
-    if (!confirm('This will ADD 40 new entry-level jobs to your existing positions. Continue?')) return;
+function cleanDuplicates() {
+    if (!confirm('This will REMOVE duplicate entries and jobs with generic/search links. Continue?')) return;
     showSaving();
-    loadDefaultPositions();
-    logHistory('added 40 new entry-level jobs');
-    showSaved();
-    alert('✅ Added 40 new entry-level positions to the end!');
+    
+    db.ref('positions').once('value').then((snapshot) => {
+        const data = snapshot.val() || {};
+        const keys = Object.keys(data);
+        const positions = keys.map(k => ({...data[k], _key: k}));
+        
+        // Track seen signatures and keys to delete
+        const seen = new Set();
+        const toDelete = [];
+        
+        // Bad link patterns (generic search/careers pages)
+        const badPatterns = [
+            'search=', 'keyword=', 'keywords=', 'q=', 'query=',
+            '/search?', '/jobs?', '/results?', '/requisitions?',
+            'location=Dublin', 'location=London', 'location=Amsterdam'
+        ];
+        
+        positions.forEach(pos => {
+            const sig = `${(pos.company||'').toLowerCase().trim()}|${(pos.role||'').toLowerCase().trim()}`;
+            const link = pos.link || '';
+            
+            // Check if link is generic (contains search params)
+            const isGenericLink = badPatterns.some(p => link.includes(p));
+            
+            if (seen.has(sig)) {
+                // Duplicate - mark for deletion
+                toDelete.push(pos._key);
+            } else if (isGenericLink) {
+                // Generic link - mark for deletion
+                toDelete.push(pos._key);
+            } else {
+                seen.add(sig);
+            }
+        });
+        
+        // Delete marked positions
+        const deletePromises = toDelete.map(key => db.ref('positions/' + key).remove());
+        
+        Promise.all(deletePromises).then(() => {
+            showSaved();
+            const msg = `🧹 Cleaned up ${toDelete.length} entries (duplicates + generic links).`;
+            alert(msg);
+            logHistory(`cleaned ${toDelete.length} duplicate/generic entries`);
+        });
+    });
 }
 
 // ============================================
@@ -692,37 +733,12 @@ function openLink(btn) {
 // DEFAULT DATA - ENTRY LEVEL (1-3 YRS ONLY)
 // ============================================
 function getDefaultPositions() {
+    // ONLY verified direct job links - NO search pages
     return [
-        // === GOOGLE (Direct) ===
-        {company: "Google", role: "Account Strategist, Mid-Market Sales", location: "Dublin", yearsExp: "0-2", link: "https://www.google.com/about/careers/applications/jobs/results/132363270328591046-account-strategist-midmarket-sales-google-customer-solutions?location=Dublin%2C%20Ireland", status: "not-started", notes: "Direct link to currently active role.", priority: true},
-        
-        // === HUBSPOT (Direct) ===
-        {company: "HubSpot", role: "Business Development Representative - UKI", location: "Dublin", yearsExp: "0-2", link: "https://www.hubspot.com/careers/jobs/4930717", status: "not-started", notes: "Entry-level sales for UK/Ireland market.", priority: true},
-        {company: "HubSpot", role: "BDR - Benelux (English Speaking)", location: "Dublin", yearsExp: "0-2", link: "https://www.hubspot.com/careers/jobs/5220991", status: "not-started", notes: "Rare English-speaking role.", priority: true},
-        
-        // === DOCUSIGN (Direct) ===
-        {company: "DocuSign", role: "Account Executive, SMB", location: "Dublin", yearsExp: "1-3", link: "https://careers.docusign.com/jobs/5643486/small-business-account-executive-uk-i?tm_job=5230-1", status: "not-started", notes: "Closing role for early career.", priority: true},
-
-        // === ADYEN (Direct) ===
-        {company: "Adyen", role: "Technical Support Engineer", location: "Amsterdam", yearsExp: "0-2", link: "https://careers.adyen.com/vacancies/technical-support-engineer-integrations/4562137", status: "not-started", notes: "Great entry point to fintech.", priority: true},
-
-        // === DATADOG (Direct) ===
-        {company: "Datadog", role: "Technical Account Manager 2", location: "Dublin", yearsExp: "2-4", link: "https://careers.datadoghq.com/detail/7555001/", status: "not-started", notes: "Technical customer facing role.", priority: true},
-        
-        // === SNOWFLAKE (Direct) ===
-        {company: "Snowflake", role: "Sales Development Representative", location: "Menlo Park/Remote", yearsExp: "0-2", link: "https://careers.snowflake.com/us/en/job/SNCOUSE2872DA8A5A340F38502B07C99816129/Sales-Development-Representative", status: "not-started", notes: "Top tier US role.", priority: true},
-
-        // === MIRO (Direct) ===
-        {company: "Miro", role: "Commercial Account Executive", location: "Amsterdam", yearsExp: "2-3", link: "https://miro.com/careers/open-positions/5628103003", status: "not-started", notes: "Closing role.", priority: true},
-
-        // === SALESFORCE (High Accuracy Search) ===
-        {company: "Salesforce", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.salesforce.com/en/jobs/?search=Business+Development+Representative&location=Dublin%2C%20Ireland", status: "not-started", notes: "Use the search to find the latest valid 'Req ID'. Job IDs change weekly.", priority: true},
-        
-        // === MICROSOFT (High Accuracy Search) ===
-        {company: "Microsoft", role: "Sales Specialist", location: "Dublin", yearsExp: "0-2", link: "https://jobs.careers.microsoft.com/global/en/search?q=Sales%20Specialist&loc=Dublin", status: "not-started", notes: "Look for 'Digital Sales' roles.", priority: true},
-
-        // === ORACLE (High Accuracy Search) ===
-        {company: "Oracle", role: "Business Development Consultant", location: "Dublin", yearsExp: "0-2", link: "https://careers.oracle.com/jobs/#en/sites/jobsearch/requisitions?keyword=Business+Development+Consultant&location=Dublin%2C%20Ireland", status: "not-started", notes: "Direct filtered list for Dublin BDRs.", priority: true}
+        {company: "HubSpot", role: "BDR - UKI", location: "Dublin", yearsExp: "0-2", link: "https://www.hubspot.com/careers/jobs/4930717", status: "not-started", notes: "Direct link verified.", priority: true},
+        {company: "HubSpot", role: "BDR - Benelux (English)", location: "Dublin", yearsExp: "0-2", link: "https://www.hubspot.com/careers/jobs/5220991", status: "not-started", notes: "Direct link verified.", priority: true},
+        {company: "Datadog", role: "Technical Account Manager", location: "Dublin", yearsExp: "2-4", link: "https://careers.datadoghq.com/detail/7555001/", status: "not-started", notes: "Direct link verified.", priority: true},
+        {company: "Miro", role: "Commercial Account Executive", location: "Amsterdam", yearsExp: "2-3", link: "https://miro.com/careers/open-positions/5628103003", status: "not-started", notes: "Direct link verified.", priority: true}
     ];
 }
 
