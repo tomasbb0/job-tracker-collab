@@ -8,10 +8,10 @@
         * { box-sizing: border-box; }
         body { 
             font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; 
-            max-width: 1500px; 
+            max-width: min(1500px, 95vw); 
             margin: 0 auto; 
-            padding: 40px;
-            font-size: 13px;
+            padding: clamp(20px, 3vw, 40px);
+            font-size: clamp(12px, 1.1vw, 13px);
             color: #000;
             background: #fff;
             line-height: 1.5;
@@ -117,8 +117,8 @@
         
         /* Layout */
         .tables-container { display: flex; gap: 40px; flex-wrap: wrap; }
-        .positions-section { flex: 2; min-width: 600px; }
-        .referrals-section { flex: 1; min-width: 320px; background: #fafafa; padding: 24px; border-radius: 12px; border: 1px solid #f0f0f0; height: fit-content; }
+        .positions-section { flex: 2; min-width: min(600px, 100%); overflow-x: auto; }
+        .referrals-section { flex: 1; min-width: min(320px, 100%); background: #fafafa; padding: 24px; border-radius: 12px; border: 1px solid #f0f0f0; height: fit-content; overflow-x: auto; }
         .referrals-section h2 { margin-top: 0; }
         .referrals-section table { background: #fff; border-radius: 8px; overflow: hidden; }
         .referrals-section th { background: #fff; }
@@ -148,9 +148,20 @@
         }
         th.resizable:hover::after { background: #ddd; }
         th.resizing::after { background: #000 !important; }
-        table { table-layout: fixed; }
+        table { table-layout: fixed; min-width: 100%; }
         td, th { overflow: hidden; text-overflow: ellipsis; }
         td:first-child, td:nth-child(2) { overflow: visible; white-space: normal; }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body { padding: 20px 15px; }
+            .tables-container { flex-direction: column; gap: 20px; }
+            .positions-section, .referrals-section { min-width: 100%; }
+            h1 { font-size: clamp(20px, 5vw, 28px); }
+        }
+        @media (min-width: 1920px) {
+            body { max-width: 90vw; }
+        }
     </style>
 </head>
 <body>
