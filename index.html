@@ -189,12 +189,12 @@
                 <thead>
                     <tr>
                         <th style="width: 30px;"></th>
-                        <th>Company</th>
-                        <th>Role</th>
-                        <th>Location</th>
-                        <th style="width: 60px;">Yrs Exp</th>
-                        <th>Apply Link</th>
-                        <th>Status</th>
+                        <th style="width: 100px;">Company</th>
+                        <th style="min-width: 280px;">Role</th>
+                        <th style="width: 90px;">Location</th>
+                        <th style="width: 55px;">Yrs Exp</th>
+                        <th style="width: 100px;">Apply Link</th>
+                        <th style="width: 100px;">Status</th>
                         <th>Notes</th>
                     </tr>
                 </thead>
@@ -399,7 +399,15 @@ function cleanDuplicates() {
         const badPatterns = [
             'search=', 'keyword=', 'keywords=', 'q=', 'query=',
             '/search?', '/jobs?', '/results?', '/requisitions?',
-            'location=Dublin', 'location=London', 'location=Amsterdam'
+            'location=Dublin', 'location=London', 'location=Amsterdam',
+            '/careers/applications/jobs/results/', 'careers.google.com',
+            'about/careers/applications', 'careers.salesforce.com/en/jobs',
+            'jobs.careers.microsoft.com', 'careers.oracle.com/jobs',
+            'amazon.jobs/en/search', 'metacareers.com/jobs',
+            'linkedin.com/jobs/search', 'pinterestcareers.com/en/jobs',
+            'careers.snap.com/jobs', 'careers.tiktok.com',
+            'jobs.booking.com/careers', 'stripe.com/jobs/search',
+            'palantir.com/careers/open-positions'
         ];
         
         positions.forEach(pos => {
