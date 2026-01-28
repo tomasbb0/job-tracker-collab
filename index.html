@@ -178,7 +178,7 @@
 
     <div class="toolbar">
         <button class="btn btn-primary" onclick="addPosition()">+ Add Position</button>
-        <button class="btn btn-secondary" onclick="resetToDefaults()" style="background: #ff5722; color: #fff; border: none;">🔄 Load 40 New Jobs</button>
+        <button class="btn btn-secondary" onclick="resetToDefaults()" style="background: #4CAF50; color: #fff; border: none;">➕ Add 40 New Jobs</button>
         <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
     </div>
 
@@ -355,17 +355,12 @@ function loadDefaultPositions() {
 }
 
 function resetToDefaults() {
-    if (!confirm('⚠️ This will DELETE all current positions and load the 40 new entry-level jobs. Continue?')) return;
+    if (!confirm('This will ADD 40 new entry-level jobs to your existing positions. Continue?')) return;
     showSaving();
-    db.ref('positions').remove().then(() => {
-        loadDefaultPositions();
-        logHistory('reset positions to default entry-level jobs');
-        showSaved();
-        alert('✅ Loaded 40 new entry-level positions!');
-    }).catch(e => {
-        debug('✗ Reset error: ' + e.message);
-        alert('Error: ' + e.message);
-    });
+    loadDefaultPositions();
+    logHistory('added 40 new entry-level jobs');
+    showSaved();
+    alert('✅ Added 40 new entry-level positions to the end!');
 }
 
 // ============================================
