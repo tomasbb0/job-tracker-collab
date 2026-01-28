@@ -369,13 +369,13 @@
                 <thead>
                     <tr>
                         <th style="width: 30px;"></th>
-                        <th style="width: 100px;">Company <button class="filter-btn" onclick="openFilterModal('company')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg></button></th>
-                        <th style="min-width: 280px;">Role <button class="filter-btn" onclick="openFilterModal('role')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg></button></th>
-                        <th style="width: 90px;">Location <button class="filter-btn" onclick="openFilterModal('location')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg></button></th>
-                        <th style="width: 55px;">Yrs Exp</th>
-                        <th style="width: 100px;">Apply Link</th>
-                        <th style="width: 100px;">Status</th>
-                        <th>Notes</th>
+                        <th style="width: 100px;" class="filterable" data-column="company" onclick="toggleSort('company')">Company <button class="filter-btn" onclick="event.stopPropagation(); openFilterModal('company')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg></button></th>
+                        <th style="min-width: 280px;" class="filterable" data-column="role" onclick="toggleSort('role')">Role <button class="filter-btn" onclick="event.stopPropagation(); openFilterModal('role')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg></button></th>
+                        <th style="width: 90px;" class="filterable" data-column="location" onclick="toggleSort('location')">Location <button class="filter-btn" onclick="event.stopPropagation(); openFilterModal('location')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg></button></th>
+                        <th style="width: 55px;" class="filterable" data-column="yearsExp" onclick="toggleSort('yearsExp')">Yrs Exp <button class="filter-btn" onclick="event.stopPropagation(); openFilterModal('yearsExp')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg></button></th>
+                        <th style="width: 100px;" class="filterable" data-column="link" onclick="toggleSort('link')">Apply Link <button class="filter-btn" onclick="event.stopPropagation(); openFilterModal('link')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg></button></th>
+                        <th style="width: 100px;" class="filterable" data-column="status" onclick="toggleSort('status')">Status <button class="filter-btn" onclick="event.stopPropagation(); openFilterModal('status')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg></button></th>
+                        <th class="filterable" data-column="notes" onclick="toggleSort('notes')">Notes <button class="filter-btn" onclick="event.stopPropagation(); openFilterModal('notes')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg></button></th>
                     </tr>
                 </thead>
                 <tbody id="positionsBody"></tbody>
@@ -996,6 +996,16 @@ function openFilterModal(column) {
     modal.style.top = (rect.bottom + 10) + 'px';
     modal.style.left = rect.left + 'px';
     modal.classList.add('show');
+}
+
+function toggleSort(column) {
+    if (filterState.sortColumn === column) {
+        filterState.sortDirection = filterState.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        filterState.sortColumn = column;
+        filterState.sortDirection = 'asc';
+    }
+    applyFiltersAndSort();
 }
 
 function sortColumn(column, direction) {
