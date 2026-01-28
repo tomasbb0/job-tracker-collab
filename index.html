@@ -253,9 +253,9 @@ window.setUserName = function() {
     </div>
 
     <div class="toolbar">
-        <button class="btn btn-primary" onclick="addPosition()">+ Add Position</button>
-        <button class="btn btn-secondary" onclick="loadDefaultPositions()" style="background: #28a745; color: #fff; border: none;">📥 Load Default Jobs</button>
-        <button class="btn btn-secondary" onclick="cleanDuplicates()" style="background: #dc3545; color: #fff; border: none;">🧹 Remove Duplicates & Bad Links</button>
+        <button class="btn btn-primary" onclick="window.addPosition()">+ Add Position</button>
+        <button class="btn btn-secondary" onclick="window.loadDefaultPositions()" style="background: #28a745; color: #fff; border: none;">📥 Load Default Jobs</button>
+        <button class="btn btn-secondary" onclick="window.cleanDuplicates()" style="background: #dc3545; color: #fff; border: none;">🧹 Remove Duplicates & Bad Links</button>
         <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
     </div>
 
@@ -477,6 +477,7 @@ function loadDefaultPositions() {
         console.error(e);
     });
 }
+window.loadDefaultPositions = loadDefaultPositions; // Expose globally
 
 function cleanDuplicates() {
     if (!confirm('This will REMOVE duplicate entries and jobs with generic/search links. Continue?')) return;
@@ -535,6 +536,7 @@ function cleanDuplicates() {
         });
     });
 }
+window.cleanDuplicates = cleanDuplicates; // Expose globally
 
 // ============================================
 // REAL-TIME LISTENERS
@@ -671,6 +673,7 @@ function addPosition() {
         })
         .catch(e => debug('✗ Add error: ' + e.message));
 }
+window.addPosition = addPosition; // Expose globally
 
 function updatePosition(key, field, value) {
     if (!key || !db) return;
