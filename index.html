@@ -132,6 +132,24 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #ccc; }
+        
+        /* Resizable columns */
+        th.resizable { position: relative; }
+        th.resizable::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            cursor: col-resize;
+            background: transparent;
+            transition: background 0.2s;
+        }
+        th.resizable:hover::after { background: #ddd; }
+        th.resizing::after { background: #000 !important; }
+        table { table-layout: fixed; }
+        td, th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -769,6 +787,70 @@ document.querySelector('h1').addEventListener('click', function(e) {
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
     }
 });
+
+// ============================================
+// RESIZABLE COLUMNS
+// ============================================
+function initResizableColumns() {
+    const tables = document.querySelectorAll('table');
+    
+    tables.forEach((table, tableIndex) => {
+        const headers = table.querySelectorAll('th');
+        const tableId = tableIndex === 0 ? 'positions' : 'referrals';
+        
+        // Load saved widths
+        const savedWidths = JSON.parse(localStorage.getItem(`columnWidths_${tableId}`) || '{}');
+        
+        headers.forEach((th, colIndex) => {
+            // Apply saved width if exists
+            if (savedWidths[colIndex]) {
+                th.style.width = savedWidths[colIndex] + 'px';
+            }
+            
+            // Make resizable (skip first delete column)
+            if (colIndex > 0 || tableIndex === 1) {
+                th.classList.add('resizable');
+                
+                let startX, startWidth;
+                
+                th.addEventListener('mousedown', function(e) {
+                    // Only if clicking the resize handle area (right 5px)
+                    const rect = th.getBoundingClientRect();
+                    if (e.clientX > rect.right - 10) {
+                        e.preventDefault();
+                        startX = e.clientX;
+                        startWidth = th.offsetWidth;
+                        th.classList.add('resizing');
+                        
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    }
+                });
+                
+                function onMouseMove(e) {
+                    const newWidth = Math.max(40, startWidth + (e.clientX - startX));
+                    th.style.width = newWidth + 'px';
+                }
+                
+                function onMouseUp() {
+                    th.classList.remove('resizing');
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    
+                    // Save all column widths for this table
+                    const widths = {};
+                    headers.forEach((header, idx) => {
+                        widths[idx] = header.offsetWidth;
+                    });
+                    localStorage.setItem(`columnWidths_${tableId}`, JSON.stringify(widths));
+                }
+            }
+        });
+    });
+}
+
+// Initialize resizable columns after page loads
+setTimeout(initResizableColumns, 500);
 </script>
 
 </body>
