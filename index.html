@@ -278,22 +278,10 @@
 
 <script>
 // ============================================
-// FIREBASE CONFIGURATION
+// USER & PRESENCE - Define setUserName FIRST so it's always available
 // ============================================
-const firebaseConfig = {
-    apiKey: "AIzaSyAF36Th9wAoWMAvj0mVAw4GDdpkcx9sPVc",
-    authDomain: "job-tracker-tomas.firebaseapp.com",
-    databaseURL: "https://job-tracker-tomas-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "job-tracker-tomas",
-    storageBucket: "job-tracker-tomas.firebasestorage.app",
-    messagingSenderId: "360707138428",
-    appId: "1:360707138428:web:543adb9605d2fbd702faf9"
-};
-
-// Initialize Firebase
 let db = null;
 let currentUser = null;
-// Use persistent userId per device (stored in localStorage) to prevent duplicate presence entries
 let userId = localStorage.getItem('jobTrackerUserId');
 if (!userId) {
     userId = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
@@ -304,21 +292,12 @@ let positionKeys = [];
 function debug(msg) {
     console.log('[DEBUG]', msg);
     const panel = document.getElementById('debugPanel');
-    const time = new Date().toLocaleTimeString();
-    panel.innerHTML = `[${time}] ${msg}<br>` + panel.innerHTML;
+    if (panel) {
+        const time = new Date().toLocaleTimeString();
+        panel.innerHTML = `[${time}] ${msg}<br>` + panel.innerHTML;
+    }
 }
 
-try {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-    debug('✓ Firebase initialized');
-} catch (e) {
-    debug('✗ Firebase error: ' + e.message);
-}
-
-// ============================================
-// USER & PRESENCE
-// ============================================
 function setUserName() {
     try {
         const nameInput = document.getElementById('nameInput');
@@ -350,11 +329,35 @@ function setUserName() {
             loadDemoData();
         }
     } catch (err) {
-        alert('Error: ' + err.message);
+        alert('Error in setUserName: ' + err.message);
         console.error(err);
     }
 }
 
+// ============================================
+// FIREBASE CONFIGURATION
+// ============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyAF36Th9wAoWMAvj0mVAw4GDdpkcx9sPVc",
+    authDomain: "job-tracker-tomas.firebaseapp.com",
+    databaseURL: "https://job-tracker-tomas-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "job-tracker-tomas",
+    storageBucket: "job-tracker-tomas.firebasestorage.app",
+    messagingSenderId: "360707138428",
+    appId: "1:360707138428:web:543adb9605d2fbd702faf9"
+};
+
+try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    debug('✓ Firebase initialized');
+} catch (e) {
+    debug('✗ Firebase error: ' + e.message);
+}
+
+// ============================================
+// PRESENCE FUNCTIONS
+// ============================================
 function setupPresence() {
     const presenceRef = db.ref('presence/' + userId);
     const connectedRef = db.ref('.info/connected');
