@@ -703,8 +703,11 @@ function loadDemoData() {
 // ============================================
 // POSITIONS
 // ============================================
-function renderPositions(positions) {
-    allPositions = positions; // Save for filtering
+function renderPositions(positions, isFiltered = false) {
+    // Only update allPositions if this is NOT a filtered render
+    if (!isFiltered) {
+        allPositions = positions;
+    }
     const tbody = document.getElementById('positionsBody');
     tbody.innerHTML = '';
     
@@ -1113,7 +1116,7 @@ function applyFiltersAndSort() {
         });
     }
     
-    renderPositions(filtered);
+    renderPositions(filtered, true); // true = this is filtered data, don't overwrite allPositions
 }
 
 function resetTableFilters() {
