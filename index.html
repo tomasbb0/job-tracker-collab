@@ -181,7 +181,7 @@
 </head>
 <body>
 
-<!-- Early script to define setUserName before the button -->
+<!-- Early script to define functions before buttons -->
 <script>
 window.setUserName = function() {
     var nameInput = document.getElementById('nameInput');
@@ -209,6 +209,17 @@ window.setUserName = function() {
         // Firebase script hasn't loaded yet, set flag
         window.pendingUserName = name;
     }
+};
+
+// Early stubs - will be replaced by full functions when Firebase loads
+window.loadDefaultPositions = function() {
+    alert('Please wait for Firebase to connect, then try again.');
+};
+window.addPosition = function() {
+    alert('Please wait for Firebase to connect, then try again.');
+};
+window.cleanDuplicates = function() {
+    alert('Please wait for Firebase to connect, then try again.');
 };
 </script>
 
