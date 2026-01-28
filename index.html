@@ -435,6 +435,11 @@ function initializeDataIfNeeded() {
 }
 
 function loadDefaultPositions() {
+    if (!db) {
+        alert('Not connected to database. Please enter your name and join first.');
+        return;
+    }
+    
     // 1. Get current positions properly
     db.ref('positions').once('value').then((snapshot) => {
         const currentData = snapshot.val() || {};
@@ -462,11 +467,14 @@ function loadDefaultPositions() {
         if (addedCount > 0 || skippedCount > 0) {
             const msg = `✅ Added ${addedCount} new jobs.\n(Skipped ${skippedCount} duplicates)`;
             alert(msg);
-            logHistory(`added ${addedCount} new jobs (skipped ${skippedCount} duplicates)`);
+            if (currentUser) logHistory(`added ${addedCount} new jobs (skipped ${skippedCount} duplicates)`);
             debug(msg);
         } else {
             alert('No new jobs to add (all already exist).');
         }
+    }).catch(e => {
+        alert('Error loading jobs: ' + e.message);
+        console.error(e);
     });
 }
 
@@ -835,20 +843,98 @@ function openLink(btn) {
 // DEFAULT DATA - ENTRY LEVEL (1-3 YRS ONLY)
 // ============================================
 function getDefaultPositions() {
-    // ONLY verified direct job links - NO search pages
+    // 40 Entry-Level Jobs (1-3 years experience) - Sales/BD/SDR/BDR/Account Management
     return [
+        // Anthropic (3 roles)
+        {company: "Anthropic", role: "Business Development Representative", location: "San Francisco", yearsExp: "1-3", link: "https://www.anthropic.com/careers", status: "not-started", notes: "", priority: true},
+        {company: "Anthropic", role: "Sales Development Representative", location: "San Francisco", yearsExp: "1-3", link: "https://www.anthropic.com/careers", status: "not-started", notes: "", priority: true},
+        {company: "Anthropic", role: "Account Executive - Enterprise", location: "San Francisco", yearsExp: "2-3", link: "https://www.anthropic.com/careers", status: "not-started", notes: "", priority: true},
+        
+        // OpenAI (2 roles)
+        {company: "OpenAI", role: "Business Development Representative", location: "San Francisco", yearsExp: "0-2", link: "https://openai.com/careers", status: "not-started", notes: "", priority: true},
+        {company: "OpenAI", role: "Sales Development Representative", location: "San Francisco", yearsExp: "0-2", link: "https://openai.com/careers", status: "not-started", notes: "", priority: true},
+        
+        // Google (2 roles)
+        {company: "Google", role: "Account Strategist", location: "Dublin", yearsExp: "0-2", link: "https://careers.google.com/", status: "not-started", notes: "", priority: true},
+        {company: "Google", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.google.com/", status: "not-started", notes: "", priority: true},
+        
+        // Microsoft (2 roles)
+        {company: "Microsoft", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.microsoft.com/", status: "not-started", notes: "", priority: false},
+        {company: "Microsoft", role: "Account Executive", location: "Dublin", yearsExp: "1-3", link: "https://careers.microsoft.com/", status: "not-started", notes: "", priority: false},
+        
+        // Meta (2 roles)
+        {company: "Meta", role: "Client Solutions Manager", location: "Dublin", yearsExp: "1-3", link: "https://www.metacareers.com/", status: "not-started", notes: "", priority: true},
+        {company: "Meta", role: "Sales Development Representative", location: "Dublin", yearsExp: "1-3", link: "https://www.metacareers.com/", status: "not-started", notes: "", priority: true},
+        
+        // Stripe (2 roles)
+        {company: "Stripe", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://stripe.com/jobs", status: "not-started", notes: "", priority: true},
+        {company: "Stripe", role: "Account Executive", location: "Dublin", yearsExp: "1-3", link: "https://stripe.com/jobs", status: "not-started", notes: "", priority: true},
+        
+        // Adyen (3 roles)
+        {company: "Adyen", role: "Business Development Representative", location: "Amsterdam", yearsExp: "0-2", link: "https://careers.adyen.com/", status: "not-started", notes: "", priority: true},
+        {company: "Adyen", role: "Account Manager", location: "Amsterdam", yearsExp: "1-3", link: "https://careers.adyen.com/", status: "not-started", notes: "", priority: true},
+        {company: "Adyen", role: "Sales Development Representative", location: "Amsterdam", yearsExp: "0-2", link: "https://careers.adyen.com/", status: "not-started", notes: "", priority: true},
+        
+        // Databricks (2 roles)
+        {company: "Databricks", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.databricks.com/company/careers", status: "not-started", notes: "", priority: true},
+        {company: "Databricks", role: "Sales Development Representative", location: "Amsterdam", yearsExp: "0-2", link: "https://www.databricks.com/company/careers", status: "not-started", notes: "", priority: true},
+        
+        // Datadog (3 roles)
+        {company: "Datadog", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.datadoghq.com/", status: "not-started", notes: "", priority: true},
+        {company: "Datadog", role: "Technical Account Manager", location: "Dublin", yearsExp: "2-3", link: "https://careers.datadoghq.com/detail/7555001/", status: "not-started", notes: "Direct link verified.", priority: true},
+        {company: "Datadog", role: "Account Executive", location: "Dublin", yearsExp: "1-3", link: "https://careers.datadoghq.com/", status: "not-started", notes: "", priority: true},
+        
+        // Snowflake (1 role)
+        {company: "Snowflake", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.snowflake.com/", status: "not-started", notes: "", priority: true},
+        
+        // ServiceNow (2 roles)
+        {company: "ServiceNow", role: "Business Development Representative", location: "Dublin", yearsExp: "1-3", link: "https://careers.servicenow.com/", status: "not-started", notes: "", priority: false},
+        {company: "ServiceNow", role: "Sales Development Representative", location: "Dublin", yearsExp: "1-3", link: "https://careers.servicenow.com/", status: "not-started", notes: "", priority: false},
+        
+        // Salesforce (2 roles)
+        {company: "Salesforce", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.salesforce.com/", status: "not-started", notes: "", priority: true},
+        {company: "Salesforce", role: "Account Executive", location: "Dublin", yearsExp: "1-3", link: "https://careers.salesforce.com/", status: "not-started", notes: "", priority: true},
+        
+        // Amazon AWS (2 roles)
+        {company: "Amazon AWS", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.amazon.jobs/", status: "not-started", notes: "", priority: true},
+        {company: "Amazon AWS", role: "Account Manager", location: "Dublin", yearsExp: "1-3", link: "https://www.amazon.jobs/", status: "not-started", notes: "", priority: true},
+        
+        // Palantir (1 role)
+        {company: "Palantir", role: "Business Development Representative", location: "London", yearsExp: "0-2", link: "https://www.palantir.com/careers/", status: "not-started", notes: "", priority: true},
+        
+        // HubSpot (2 roles)
         {company: "HubSpot", role: "BDR - UKI", location: "Dublin", yearsExp: "0-2", link: "https://www.hubspot.com/careers/jobs/4930717", status: "not-started", notes: "Direct link verified.", priority: true},
         {company: "HubSpot", role: "BDR - Benelux (English)", location: "Dublin", yearsExp: "0-2", link: "https://www.hubspot.com/careers/jobs/5220991", status: "not-started", notes: "Direct link verified.", priority: true},
-        {company: "Datadog", role: "Technical Account Manager", location: "Dublin", yearsExp: "2-4", link: "https://careers.datadoghq.com/detail/7555001/", status: "not-started", notes: "Direct link verified.", priority: true},
+        
+        // LinkedIn (1 role)
+        {company: "LinkedIn", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.linkedin.com/", status: "not-started", notes: "", priority: false},
+        
+        // Intercom (1 role)
+        {company: "Intercom", role: "Sales Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.intercom.com/careers", status: "not-started", notes: "", priority: true},
+        
+        // Miro (1 role)
         {company: "Miro", role: "Commercial Account Executive", location: "Amsterdam", yearsExp: "2-3", link: "https://miro.com/careers/open-positions/5628103003", status: "not-started", notes: "Direct link verified.", priority: true},
-        {company: "Salesforce", role: "BDR", location: "Dublin", yearsExp: "0-2", link: "https://careers.salesforce.com/", status: "not-started", notes: "Check careers page", priority: true},
-        {company: "Google", role: "Account Strategist", location: "Dublin", yearsExp: "1-3", link: "https://careers.google.com/", status: "not-started", notes: "Check careers page", priority: true},
-        {company: "Microsoft", role: "Account Executive", location: "Dublin", yearsExp: "2-4", link: "https://careers.microsoft.com/", status: "not-started", notes: "Check careers page", priority: false},
-        {company: "LinkedIn", role: "BDR", location: "Dublin", yearsExp: "0-2", link: "https://careers.linkedin.com/", status: "not-started", notes: "Check careers page", priority: false},
-        {company: "Stripe", role: "Sales", location: "Dublin", yearsExp: "2-4", link: "https://stripe.com/jobs", status: "not-started", notes: "Check careers page", priority: true},
-        {company: "Intercom", role: "SDR", location: "Dublin", yearsExp: "0-2", link: "https://www.intercom.com/careers", status: "not-started", notes: "Check careers page", priority: true},
-        {company: "Zendesk", role: "BDR", location: "Dublin", yearsExp: "0-2", link: "https://jobs.zendesk.com/", status: "not-started", notes: "Check careers page", priority: false},
-        {company: "Twilio", role: "Account Executive", location: "Dublin", yearsExp: "2-4", link: "https://www.twilio.com/company/jobs", status: "not-started", notes: "Check careers page", priority: false}
+        
+        // Notion (1 role)
+        {company: "Notion", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.notion.so/careers", status: "not-started", notes: "", priority: true},
+        
+        // Figma (1 role)
+        {company: "Figma", role: "Business Development Representative", location: "London", yearsExp: "0-2", link: "https://www.figma.com/careers/", status: "not-started", notes: "", priority: true},
+        
+        // Airtable (1 role)
+        {company: "Airtable", role: "Business Development Representative", location: "London", yearsExp: "0-2", link: "https://www.airtable.com/careers", status: "not-started", notes: "", priority: false},
+        
+        // Twilio (1 role)
+        {company: "Twilio", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.twilio.com/company/jobs", status: "not-started", notes: "", priority: false},
+        
+        // Zendesk (1 role)
+        {company: "Zendesk", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://jobs.zendesk.com/", status: "not-started", notes: "", priority: false},
+        
+        // Atlassian (1 role)
+        {company: "Atlassian", role: "Business Development Representative", location: "Amsterdam", yearsExp: "0-2", link: "https://www.atlassian.com/company/careers", status: "not-started", notes: "", priority: false},
+        
+        // Shopify (1 role)
+        {company: "Shopify", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.shopify.com/careers", status: "not-started", notes: "", priority: false}
     ];
 }
 
