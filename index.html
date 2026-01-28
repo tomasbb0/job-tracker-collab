@@ -202,9 +202,12 @@ window.setUserName = function() {
         modal.style.visibility = 'hidden';
     }
     
-    // Will be called later after Firebase loads
+    // Try to call onUserJoined, or set a flag for later
     if (window.onUserJoined) {
         window.onUserJoined(name);
+    } else {
+        // Firebase script hasn't loaded yet, set flag
+        window.pendingUserName = name;
     }
 };
 </script>
@@ -848,8 +851,27 @@ if (savedName) {
     document.getElementById('nameInput').value = savedName;
 }
 
+// Check if user already joined before Firebase loaded
+if (window.pendingUserName) {
+    currentUser = window.pendingUserName;
+    debug('User (pending): ' + currentUser);
+    if (db) {
+        setupPresence();
+        setupListeners();
+        initializeDataIfNeeded();
+    }
+} else if (savedName && window.currentUser) {
+    // User joined via the early script
+    currentUser = window.currentUser;
+    if (db) {
+        setupPresence();
+        setupListeners();
+        initializeDataIfNeeded();
+    }
+}
+
 document.getElementById('nameInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') setUserName();
+    if (e.key === 'Enter') window.setUserName();
 });
 
 // Triple-click title to show debug
