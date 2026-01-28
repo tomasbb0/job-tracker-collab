@@ -116,23 +116,30 @@
         .profile strong { color: #000; font-weight: 600; }
         
         /* Layout */
-        .tables-container { display: flex; gap: 40px; flex-wrap: wrap; }
-        .positions-section { flex: 2; min-width: 600px; overflow-x: auto; }
-        .referrals-section { min-width: 200px; background: #fafafa; padding: 24px; border-radius: 12px; border: 1px solid #f0f0f0; height: fit-content; position: relative; resize: horizontal; overflow: auto; }
+        .tables-container { display: flex; gap: 0; flex-wrap: nowrap; }
+        .positions-section { flex: 1; min-width: 600px; overflow-x: auto; }
+        .resize-divider { width: 8px; background: #f0f0f0; cursor: col-resize; flex-shrink: 0; transition: background 0.2s; }
+        .resize-divider:hover, .resize-divider.dragging { background: #ccc; }
+        .referrals-section { width: 350px; min-width: 200px; max-width: 500px; background: #fafafa; padding: 24px; border-radius: 0 12px 12px 0; border: 1px solid #f0f0f0; border-left: none; height: fit-content; flex-shrink: 0; }
         .referrals-section h2 { margin-top: 0; }
         .referrals-section table { background: #fff; border-radius: 8px; overflow: hidden; }
         .referrals-section th { background: #fff; }
         
-        /* Filter */
-        .filter-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
-        .filter-bar label { font-size: 12px; color: #666; font-weight: 500; }
-        .filter-bar select { padding: 6px 12px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 12px; background: #fff; min-width: 150px; }
-        
-        /* Sortable headers */
-        th.sortable { cursor: pointer; user-select: none; }
-        th.sortable:hover { background: #f0f0f0; }
-        th.sort-asc::before { content: '▲ '; font-size: 8px; }
-        th.sort-desc::before { content: '▼ '; font-size: 8px; }
+        /* Excel-style column header dropdown */
+        .col-header { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+        .col-header-text { flex: 1; }
+        .col-dropdown-btn { background: none; border: none; cursor: pointer; padding: 2px 4px; opacity: 0.4; font-size: 10px; transition: opacity 0.2s; }
+        .col-dropdown-btn:hover { opacity: 1; }
+        th:hover .col-dropdown-btn { opacity: 0.7; }
+        .col-dropdown { position: absolute; top: 100%; left: 0; background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 180px; display: none; }
+        .col-dropdown.show { display: block; }
+        .col-dropdown-item { padding: 8px 12px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+        .col-dropdown-item:hover { background: #f5f5f5; }
+        .col-dropdown-item.active { background: #e8f4ff; }
+        .col-dropdown-divider { border-top: 1px solid #eee; margin: 4px 0; }
+        .col-dropdown-filter { padding: 8px; border-bottom: 1px solid #eee; }
+        .col-dropdown-filter input { width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; }
+        .col-dropdown-values { max-height: 200px; overflow-y: auto; }
         
         /* Connection status */
         .connection-lost { background: #fef2f2; color: #dc2626; padding: 12px; text-align: center; font-size: 12px; display: none; border-radius: 8px; margin-bottom: 16px; font-weight: 500; }
@@ -215,32 +222,16 @@
     <div class="tables-container">
         <div class="positions-section">
             <h2 style="font-size: 16px; margin-bottom: 10px;"><svg style="width:16px;height:16px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Positions</h2>
-            <div class="filter-bar">
-                <label>Filter by Company:</label>
-                <select id="companyFilter" onchange="applyFilter()">
-                    <option value="">All Companies</option>
-                </select>
-                <label>Filter by Status:</label>
-                <select id="statusFilter" onchange="applyFilter()">
-                    <option value="">All Statuses</option>
-                    <option value="not-started">Not Started</option>
-                    <option value="waiting-referral">Waiting for Referral</option>
-                    <option value="applied">Applied</option>
-                    <option value="interview">Interview</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="offer">Offer</option>
-                </select>
-            </div>
             <table id="positionsTable">
                 <thead>
                     <tr>
                         <th style="width: 30px;"></th>
-                        <th style="width: 100px;" class="sortable" data-sort="company">Company</th>
-                        <th style="min-width: 280px;" class="sortable" data-sort="role">Role</th>
-                        <th style="width: 90px;" class="sortable" data-sort="location">Location</th>
+                        <th style="width: 100px; position: relative;" data-col="company"><div class="col-header"><span class="col-header-text">Company</span><button class="col-dropdown-btn" onclick="toggleColDropdown(event, 'company')">▼</button></div><div class="col-dropdown" id="dropdown-company"></div></th>
+                        <th style="min-width: 280px; position: relative;" data-col="role"><div class="col-header"><span class="col-header-text">Role</span><button class="col-dropdown-btn" onclick="toggleColDropdown(event, 'role')">▼</button></div><div class="col-dropdown" id="dropdown-role"></div></th>
+                        <th style="width: 90px; position: relative;" data-col="location"><div class="col-header"><span class="col-header-text">Location</span><button class="col-dropdown-btn" onclick="toggleColDropdown(event, 'location')">▼</button></div><div class="col-dropdown" id="dropdown-location"></div></th>
                         <th style="width: 55px;">Yrs Exp</th>
                         <th style="width: 100px;">Apply Link</th>
-                        <th style="width: 100px;" class="sortable" data-sort="status">Status</th>
+                        <th style="width: 100px; position: relative;" data-col="status"><div class="col-header"><span class="col-header-text">Status</span><button class="col-dropdown-btn" onclick="toggleColDropdown(event, 'status')">▼</button></div><div class="col-dropdown" id="dropdown-status"></div></th>
                         <th>Notes</th>
                     </tr>
                 </thead>
@@ -248,6 +239,7 @@
             </table>
         </div>
 
+        <div class="resize-divider" id="resizeDivider"></div>
         <div class="referrals-section">
             <h2 style="font-size: 16px; margin-bottom: 10px;"><svg style="width:16px;height:16px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>Company Referrals</h2>
             <table>
@@ -542,7 +534,6 @@ function loadDemoData() {
 function renderPositions(positions) {
     // Store all positions for filtering
     allPositions = positions;
-    updateCompanyFilter(positions);
     applyFilter();
 }
 
@@ -824,38 +815,123 @@ document.querySelector('h1').addEventListener('click', function(e) {
 });
 
 // ============================================
-// FILTER & SORT
+// EXCEL-STYLE COLUMN FILTER & SORT
 // ============================================
 let currentSort = { column: null, direction: 'asc' };
+let columnFilters = { company: '', role: '', location: '', status: '' };
 let allPositions = [];
 
-function updateCompanyFilter(positions) {
-    const select = document.getElementById('companyFilter');
-    const companies = [...new Set(positions.map(p => p.company).filter(c => c && c.trim()))].sort();
-    const currentValue = select.value;
+const statusLabels = {
+    'not-started': 'Not Started',
+    'waiting-referral': 'Waiting for Referral',
+    'applied': 'Applied',
+    'interview': 'Interview',
+    'rejected': 'Rejected',
+    'offer': 'Offer'
+};
+
+function toggleColDropdown(e, column) {
+    e.stopPropagation();
     
-    // Keep first option, replace rest
-    select.innerHTML = '<option value="">All Companies</option>' + 
-        companies.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    // Close all other dropdowns
+    document.querySelectorAll('.col-dropdown').forEach(d => {
+        if (d.id !== `dropdown-${column}`) d.classList.remove('show');
+    });
     
-    // Restore selection if still valid
-    if (companies.includes(currentValue)) {
-        select.value = currentValue;
+    const dropdown = document.getElementById(`dropdown-${column}`);
+    const isOpen = dropdown.classList.contains('show');
+    
+    if (isOpen) {
+        dropdown.classList.remove('show');
+    } else {
+        // Build dropdown content
+        buildDropdownContent(column);
+        dropdown.classList.add('show');
     }
 }
 
-function applyFilter() {
-    const companyFilter = document.getElementById('companyFilter').value.toLowerCase();
-    const statusFilter = document.getElementById('statusFilter').value;
+function buildDropdownContent(column) {
+    const dropdown = document.getElementById(`dropdown-${column}`);
+    const uniqueValues = [...new Set(allPositions.map(p => p[column]).filter(v => v && v.toString().trim()))].sort();
     
+    let html = `
+        <div class="col-dropdown-item" onclick="sortColumn('${column}', 'asc')">
+            <span>↑</span> Sort A → Z
+        </div>
+        <div class="col-dropdown-item" onclick="sortColumn('${column}', 'desc')">
+            <span>↓</span> Sort Z → A
+        </div>
+        <div class="col-dropdown-divider"></div>
+        <div class="col-dropdown-item ${!columnFilters[column] ? 'active' : ''}" onclick="filterColumn('${column}', '')">
+            <span>✓</span> Show All
+        </div>
+        <div class="col-dropdown-divider"></div>
+        <div class="col-dropdown-values">
+    `;
+    
+    uniqueValues.forEach(val => {
+        const displayVal = column === 'status' ? (statusLabels[val] || val) : val;
+        const isActive = columnFilters[column] === val;
+        html += `<div class="col-dropdown-item ${isActive ? 'active' : ''}" onclick="filterColumn('${column}', '${escapeHtml(val)}')">${escapeHtml(displayVal)}</div>`;
+    });
+    
+    html += '</div>';
+    dropdown.innerHTML = html;
+}
+
+function sortColumn(column, direction) {
+    currentSort = { column, direction };
+    closeAllDropdowns();
+    applyFilter();
+    
+    // Update visual indicator
+    document.querySelectorAll('th[data-col]').forEach(th => {
+        const text = th.querySelector('.col-header-text');
+        if (text) {
+            const colName = th.dataset.col;
+            const baseName = colName.charAt(0).toUpperCase() + colName.slice(1);
+            if (colName === column) {
+                text.textContent = (direction === 'asc' ? '↑ ' : '↓ ') + baseName;
+            } else {
+                text.textContent = baseName;
+            }
+        }
+    });
+}
+
+function filterColumn(column, value) {
+    columnFilters[column] = value;
+    closeAllDropdowns();
+    applyFilter();
+    
+    // Update visual indicator (bold if filtered)
+    const th = document.querySelector(`th[data-col="${column}"]`);
+    if (th) {
+        th.style.fontWeight = value ? '700' : '600';
+        th.style.background = value ? '#e8f4ff' : '#fafafa';
+    }
+}
+
+function closeAllDropdowns() {
+    document.querySelectorAll('.col-dropdown').forEach(d => d.classList.remove('show'));
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.col-dropdown') && !e.target.closest('.col-dropdown-btn')) {
+        closeAllDropdowns();
+    }
+});
+
+function applyFilter() {
     let filtered = allPositions;
     
-    if (companyFilter) {
-        filtered = filtered.filter(p => (p.company || '').toLowerCase() === companyFilter);
-    }
-    if (statusFilter) {
-        filtered = filtered.filter(p => p.status === statusFilter);
-    }
+    // Apply all column filters
+    Object.keys(columnFilters).forEach(col => {
+        if (columnFilters[col]) {
+            filtered = filtered.filter(p => (p[col] || '').toString().toLowerCase() === columnFilters[col].toLowerCase());
+        }
+    });
     
     // Apply current sort
     if (currentSort.column) {
@@ -875,33 +951,6 @@ function sortPositions(positions, column, direction) {
         return 0;
     });
 }
-
-function handleSort(column) {
-    // Toggle direction if same column
-    if (currentSort.column === column) {
-        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-    } else {
-        currentSort.column = column;
-        currentSort.direction = 'asc';
-    }
-    
-    // Update header classes
-    document.querySelectorAll('th.sortable').forEach(th => {
-        th.classList.remove('sort-asc', 'sort-desc');
-        if (th.dataset.sort === column) {
-            th.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
-        }
-    });
-    
-    applyFilter();
-}
-
-// Initialize sort click handlers
-setTimeout(() => {
-    document.querySelectorAll('th.sortable').forEach(th => {
-        th.addEventListener('click', () => handleSort(th.dataset.sort));
-    });
-}, 100);
 
 // ============================================
 // RESIZABLE COLUMNS (Fixed)
@@ -967,21 +1016,41 @@ function initResizableColumns() {
         });
     });
     
-    // Make referrals section width persistent
+    // Make referrals section width persistent via drag divider
     const referralsSection = document.querySelector('.referrals-section');
-    if (referralsSection) {
+    const divider = document.getElementById('resizeDivider');
+    
+    if (referralsSection && divider) {
         const savedWidth = localStorage.getItem('referralsSectionWidth');
         if (savedWidth) {
             referralsSection.style.width = savedWidth + 'px';
         }
         
-        // Save width on resize
-        const observer = new ResizeObserver(entries => {
-            for (let entry of entries) {
-                localStorage.setItem('referralsSectionWidth', entry.contentRect.width);
-            }
+        let startX, startWidth;
+        
+        divider.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            startX = e.pageX;
+            startWidth = referralsSection.offsetWidth;
+            divider.classList.add('dragging');
+            
+            document.addEventListener('mousemove', onDividerMove);
+            document.addEventListener('mouseup', onDividerUp);
         });
-        observer.observe(referralsSection);
+        
+        function onDividerMove(e) {
+            // Dragging left makes referrals bigger, right makes it smaller
+            const diff = startX - e.pageX;
+            const newWidth = Math.max(200, Math.min(500, startWidth + diff));
+            referralsSection.style.width = newWidth + 'px';
+        }
+        
+        function onDividerUp() {
+            divider.classList.remove('dragging');
+            document.removeEventListener('mousemove', onDividerMove);
+            document.removeEventListener('mouseup', onDividerUp);
+            localStorage.setItem('referralsSectionWidth', referralsSection.offsetWidth);
+        }
     }
 }
 
