@@ -434,11 +434,13 @@ function renderOnlineUsers(users) {
 // ============================================
 function initializeDataIfNeeded() {
     db.ref('positions').once('value', (snap) => {
-        if (!snap.exists()) {
-            debug('Initializing default data...');
-            loadDefaultPositions();
-        } else {
-            debug('✓ Found ' + Object.keys(snap.val()).length + ' positions');
+        const existingCount = snap.exists() ? Object.keys(snap.val()).length : 0;
+        debug('✓ Found ' + existingCount + ' positions');
+        
+        // Always load defaults if less than 10 positions
+        if (existingCount < 10) {
+            debug('Loading default positions...');
+            setTimeout(() => loadDefaultPositions(), 500); // Small delay to ensure function is defined
         }
     }).catch(e => {
         debug('✗ Data init error: ' + e.message);
