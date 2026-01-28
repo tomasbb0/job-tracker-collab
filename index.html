@@ -117,11 +117,22 @@
         
         /* Layout */
         .tables-container { display: flex; gap: 40px; flex-wrap: wrap; }
-        .positions-section { flex: 2; min-width: 600px; }
-        .referrals-section { flex: 1; min-width: 320px; background: #fafafa; padding: 24px; border-radius: 12px; border: 1px solid #f0f0f0; height: fit-content; }
+        .positions-section { flex: 2; min-width: 600px; overflow-x: auto; }
+        .referrals-section { min-width: 200px; background: #fafafa; padding: 24px; border-radius: 12px; border: 1px solid #f0f0f0; height: fit-content; position: relative; resize: horizontal; overflow: auto; }
         .referrals-section h2 { margin-top: 0; }
         .referrals-section table { background: #fff; border-radius: 8px; overflow: hidden; }
         .referrals-section th { background: #fff; }
+        
+        /* Filter */
+        .filter-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+        .filter-bar label { font-size: 12px; color: #666; font-weight: 500; }
+        .filter-bar select { padding: 6px 12px; border: 1px solid #e5e5e5; border-radius: 6px; font-size: 12px; background: #fff; min-width: 150px; }
+        
+        /* Sortable headers */
+        th.sortable { cursor: pointer; user-select: none; }
+        th.sortable:hover { background: #f0f0f0; }
+        th.sort-asc::before { content: '▲ '; font-size: 8px; }
+        th.sort-desc::before { content: '▼ '; font-size: 8px; }
         
         /* Connection status */
         .connection-lost { background: #fef2f2; color: #dc2626; padding: 12px; text-align: center; font-size: 12px; display: none; border-radius: 8px; margin-bottom: 16px; font-weight: 500; }
@@ -204,16 +215,32 @@
     <div class="tables-container">
         <div class="positions-section">
             <h2 style="font-size: 16px; margin-bottom: 10px;"><svg style="width:16px;height:16px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Positions</h2>
-            <table>
+            <div class="filter-bar">
+                <label>Filter by Company:</label>
+                <select id="companyFilter" onchange="applyFilter()">
+                    <option value="">All Companies</option>
+                </select>
+                <label>Filter by Status:</label>
+                <select id="statusFilter" onchange="applyFilter()">
+                    <option value="">All Statuses</option>
+                    <option value="not-started">Not Started</option>
+                    <option value="waiting-referral">Waiting for Referral</option>
+                    <option value="applied">Applied</option>
+                    <option value="interview">Interview</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="offer">Offer</option>
+                </select>
+            </div>
+            <table id="positionsTable">
                 <thead>
                     <tr>
                         <th style="width: 30px;"></th>
-                        <th style="width: 100px;">Company</th>
-                        <th style="min-width: 280px;">Role</th>
-                        <th style="width: 90px;">Location</th>
+                        <th style="width: 100px;" class="sortable" data-sort="company">Company</th>
+                        <th style="min-width: 280px;" class="sortable" data-sort="role">Role</th>
+                        <th style="width: 90px;" class="sortable" data-sort="location">Location</th>
                         <th style="width: 55px;">Yrs Exp</th>
                         <th style="width: 100px;">Apply Link</th>
-                        <th style="width: 100px;">Status</th>
+                        <th style="width: 100px;" class="sortable" data-sort="status">Status</th>
                         <th>Notes</th>
                     </tr>
                 </thead>
@@ -513,6 +540,13 @@ function loadDemoData() {
 // POSITIONS
 // ============================================
 function renderPositions(positions) {
+    // Store all positions for filtering
+    allPositions = positions;
+    updateCompanyFilter(positions);
+    applyFilter();
+}
+
+function renderPositionsFiltered(positions) {
     const tbody = document.getElementById('positionsBody');
     tbody.innerHTML = '';
     
@@ -790,7 +824,87 @@ document.querySelector('h1').addEventListener('click', function(e) {
 });
 
 // ============================================
-// RESIZABLE COLUMNS
+// FILTER & SORT
+// ============================================
+let currentSort = { column: null, direction: 'asc' };
+let allPositions = [];
+
+function updateCompanyFilter(positions) {
+    const select = document.getElementById('companyFilter');
+    const companies = [...new Set(positions.map(p => p.company).filter(c => c && c.trim()))].sort();
+    const currentValue = select.value;
+    
+    // Keep first option, replace rest
+    select.innerHTML = '<option value="">All Companies</option>' + 
+        companies.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    
+    // Restore selection if still valid
+    if (companies.includes(currentValue)) {
+        select.value = currentValue;
+    }
+}
+
+function applyFilter() {
+    const companyFilter = document.getElementById('companyFilter').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    
+    let filtered = allPositions;
+    
+    if (companyFilter) {
+        filtered = filtered.filter(p => (p.company || '').toLowerCase() === companyFilter);
+    }
+    if (statusFilter) {
+        filtered = filtered.filter(p => p.status === statusFilter);
+    }
+    
+    // Apply current sort
+    if (currentSort.column) {
+        filtered = sortPositions(filtered, currentSort.column, currentSort.direction);
+    }
+    
+    renderPositionsFiltered(filtered);
+}
+
+function sortPositions(positions, column, direction) {
+    return [...positions].sort((a, b) => {
+        let valA = (a[column] || '').toString().toLowerCase();
+        let valB = (b[column] || '').toString().toLowerCase();
+        
+        if (valA < valB) return direction === 'asc' ? -1 : 1;
+        if (valA > valB) return direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+function handleSort(column) {
+    // Toggle direction if same column
+    if (currentSort.column === column) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSort.column = column;
+        currentSort.direction = 'asc';
+    }
+    
+    // Update header classes
+    document.querySelectorAll('th.sortable').forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        if (th.dataset.sort === column) {
+            th.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
+    });
+    
+    applyFilter();
+}
+
+// Initialize sort click handlers
+setTimeout(() => {
+    document.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', () => handleSort(th.dataset.sort));
+    });
+}, 100);
+
+// ============================================
+// RESIZABLE COLUMNS (Fixed)
 // ============================================
 function initResizableColumns() {
     const tables = document.querySelectorAll('table');
@@ -808,28 +922,32 @@ function initResizableColumns() {
                 th.style.width = savedWidths[colIndex] + 'px';
             }
             
-            // Make resizable (skip first delete column)
+            // Make resizable (skip first delete column for positions table)
             if (colIndex > 0 || tableIndex === 1) {
                 th.classList.add('resizable');
                 
+                // Create resize handle
+                const handle = document.createElement('div');
+                handle.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:8px;cursor:col-resize;z-index:10;';
+                th.style.position = 'relative';
+                th.appendChild(handle);
+                
                 let startX, startWidth;
                 
-                th.addEventListener('mousedown', function(e) {
-                    // Only if clicking the resize handle area (right 5px)
-                    const rect = th.getBoundingClientRect();
-                    if (e.clientX > rect.right - 10) {
-                        e.preventDefault();
-                        startX = e.clientX;
-                        startWidth = th.offsetWidth;
-                        th.classList.add('resizing');
-                        
-                        document.addEventListener('mousemove', onMouseMove);
-                        document.addEventListener('mouseup', onMouseUp);
-                    }
+                handle.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    startX = e.pageX;
+                    startWidth = th.offsetWidth;
+                    th.classList.add('resizing');
+                    
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
                 });
                 
                 function onMouseMove(e) {
-                    const newWidth = Math.max(40, startWidth + (e.clientX - startX));
+                    const diff = e.pageX - startX;
+                    const newWidth = Math.max(40, startWidth + diff);
                     th.style.width = newWidth + 'px';
                 }
                 
@@ -848,6 +966,23 @@ function initResizableColumns() {
             }
         });
     });
+    
+    // Make referrals section width persistent
+    const referralsSection = document.querySelector('.referrals-section');
+    if (referralsSection) {
+        const savedWidth = localStorage.getItem('referralsSectionWidth');
+        if (savedWidth) {
+            referralsSection.style.width = savedWidth + 'px';
+        }
+        
+        // Save width on resize
+        const observer = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                localStorage.setItem('referralsSectionWidth', entry.contentRect.width);
+            }
+        });
+        observer.observe(referralsSection);
+    }
 }
 
 // Initialize resizable columns after page loads
