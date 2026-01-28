@@ -104,7 +104,6 @@
         /* Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
         .modal.show { display: flex; }
-        .modal.hidden { display: none !important; visibility: hidden !important; }
         .modal-content { background: #fff; padding: 40px; border-radius: 16px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
         .modal-content h2 { margin-bottom: 8px; font-size: 24px; }
         .modal-content p { color: #888; margin-bottom: 24px; }
@@ -117,37 +116,12 @@
         .profile strong { color: #000; font-weight: 600; }
         
         /* Layout */
-        .tables-container { display: flex; gap: 0; flex-wrap: nowrap; }
-        .positions-section { flex: 1; min-width: 600px; overflow-x: auto; }
-        .resize-divider { width: 8px; background: #f0f0f0; cursor: col-resize; flex-shrink: 0; transition: background 0.2s; }
-        .resize-divider:hover, .resize-divider.dragging { background: #ccc; }
-        .referrals-section { width: 350px; min-width: 200px; max-width: 500px; background: #fafafa; padding: 24px; border-radius: 0 12px 12px 0; border: 1px solid #f0f0f0; border-left: none; height: fit-content; flex-shrink: 0; }
+        .tables-container { display: flex; gap: 40px; flex-wrap: wrap; }
+        .positions-section { flex: 2; min-width: 600px; }
+        .referrals-section { flex: 1; min-width: 320px; background: #fafafa; padding: 24px; border-radius: 12px; border: 1px solid #f0f0f0; height: fit-content; }
         .referrals-section h2 { margin-top: 0; }
         .referrals-section table { background: #fff; border-radius: 8px; overflow: hidden; }
         .referrals-section th { background: #fff; }
-        
-        /* Excel-style column header dropdown */
-        .col-header { display: flex; align-items: center; gap: 4px; }
-        .col-header-text { flex: 1; cursor: pointer; }
-        .col-sort-arrows { display: flex; flex-direction: column; font-size: 8px; line-height: 1; cursor: pointer; opacity: 0.3; }
-        .col-sort-arrows:hover { opacity: 1; }
-        .col-sort-arrows .active { opacity: 1; color: #000; }
-        .col-filter-btn { background: none; border: none; cursor: pointer; padding: 2px 4px; opacity: 0.4; font-size: 11px; }
-        .col-filter-btn:hover { opacity: 1; }
-        .col-filter-btn.filtered { opacity: 1; color: #0066cc; }
-        th:hover .col-filter-btn, th:hover .col-sort-arrows { opacity: 0.7; }
-        .col-dropdown { position: absolute; top: 100%; left: 0; background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 200px; display: none; }
-        .col-dropdown.show { display: block; }
-        .col-dropdown-header { padding: 8px 12px; border-bottom: 1px solid #eee; display: flex; gap: 8px; }
-        .col-dropdown-header button { padding: 4px 8px; font-size: 11px; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer; }
-        .col-dropdown-header button:hover { background: #f5f5f5; }
-        .col-dropdown-values { max-height: 250px; overflow-y: auto; padding: 4px 0; }
-        .col-dropdown-item { padding: 6px 12px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px; }
-        .col-dropdown-item:hover { background: #f5f5f5; }
-        .col-dropdown-item input[type="checkbox"] { margin: 0; cursor: pointer; }
-        .col-dropdown-apply { padding: 8px 12px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; }
-        .col-dropdown-apply button { padding: 6px 16px; font-size: 12px; border: none; border-radius: 4px; background: #000; color: #fff; cursor: pointer; }
-        .col-dropdown-apply button:hover { background: #333; }
         
         /* Connection status */
         .connection-lost { background: #fef2f2; color: #dc2626; padding: 12px; text-align: center; font-size: 12px; display: none; border-radius: 8px; margin-bottom: 16px; font-weight: 500; }
@@ -181,55 +155,13 @@
 </head>
 <body>
 
-<!-- Early script to define functions before buttons -->
-<script>
-window.setUserName = function() {
-    var nameInput = document.getElementById('nameInput');
-    var name = nameInput ? nameInput.value.trim() : '';
-    if (!name) {
-        alert('Please enter your name');
-        return;
-    }
-    window.currentUser = name;
-    localStorage.setItem('jobTrackerUserName', name);
-    
-    // Close modal
-    var modal = document.getElementById('nameModal');
-    if (modal) {
-        modal.classList.remove('show');
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
-        modal.style.visibility = 'hidden';
-    }
-    
-    // Try to call onUserJoined, or set a flag for later
-    if (window.onUserJoined) {
-        window.onUserJoined(name);
-    } else {
-        // Firebase script hasn't loaded yet, set flag
-        window.pendingUserName = name;
-    }
-};
-
-// Early stubs - will be replaced by full functions when Firebase loads
-window.loadDefaultPositions = function() {
-    alert('Please wait for Firebase to connect, then try again.');
-};
-window.addPosition = function() {
-    alert('Please wait for Firebase to connect, then try again.');
-};
-window.cleanDuplicates = function() {
-    alert('Please wait for Firebase to connect, then try again.');
-};
-</script>
-
 <!-- Name Entry Modal -->
 <div class="modal show" id="nameModal">
     <div class="modal-content">
         <h2><svg style="width:28px;height:28px;vertical-align:middle;margin-right:8px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/></svg>Welcome</h2>
         <p style="color: #666; margin-bottom: 20px;">Enter your name so others know who's editing</p>
         <input type="text" id="nameInput" placeholder="Your name (e.g., Madalena)" autofocus>
-        <button class="btn btn-primary" onclick="window.setUserName()" style="width: 100%; padding: 12px;">Join Document</button>
+        <button class="btn btn-primary" onclick="setUserName()" style="width: 100%; padding: 12px;">Join Document</button>
     </div>
 </div>
 
@@ -264,25 +196,24 @@ window.cleanDuplicates = function() {
     </div>
 
     <div class="toolbar">
-        <button class="btn btn-primary" onclick="window.addPosition()">+ Add Position</button>
-        <button class="btn btn-secondary" onclick="window.loadDefaultPositions()" style="background: #28a745; color: #fff; border: none;">📥 Load Default Jobs</button>
-        <button class="btn btn-secondary" onclick="window.cleanDuplicates()" style="background: #dc3545; color: #fff; border: none;">🧹 Remove Duplicates & Bad Links</button>
+        <button class="btn btn-primary" onclick="addPosition()">+ Add Position</button>
+        <button class="btn btn-secondary" onclick="cleanDuplicates()" style="background: #dc3545; color: #fff; border: none;">🧹 Remove Duplicates & Bad Links</button>
         <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
     </div>
 
     <div class="tables-container">
         <div class="positions-section">
             <h2 style="font-size: 16px; margin-bottom: 10px;"><svg style="width:16px;height:16px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Positions</h2>
-            <table id="positionsTable">
+            <table>
                 <thead>
                     <tr>
                         <th style="width: 30px;"></th>
-                        <th style="width: 100px; position: relative;" data-col="company"><div class="col-header"><span class="col-header-text" onclick="sortColumn('company')">Company</span><div class="col-sort-arrows" onclick="sortColumn('company')"><span id="sort-company-asc">▲</span><span id="sort-company-desc">▼</span></div><button class="col-filter-btn" id="filter-btn-company" onclick="toggleColDropdown(event, 'company')">☰</button></div><div class="col-dropdown" id="dropdown-company"></div></th>
-                        <th style="min-width: 280px; position: relative;" data-col="role"><div class="col-header"><span class="col-header-text" onclick="sortColumn('role')">Role</span><div class="col-sort-arrows" onclick="sortColumn('role')"><span id="sort-role-asc">▲</span><span id="sort-role-desc">▼</span></div><button class="col-filter-btn" id="filter-btn-role" onclick="toggleColDropdown(event, 'role')">☰</button></div><div class="col-dropdown" id="dropdown-role"></div></th>
-                        <th style="width: 90px; position: relative;" data-col="location"><div class="col-header"><span class="col-header-text" onclick="sortColumn('location')">Location</span><div class="col-sort-arrows" onclick="sortColumn('location')"><span id="sort-location-asc">▲</span><span id="sort-location-desc">▼</span></div><button class="col-filter-btn" id="filter-btn-location" onclick="toggleColDropdown(event, 'location')">☰</button></div><div class="col-dropdown" id="dropdown-location"></div></th>
-                        <th style="width: 55px; position: relative;" data-col="yearsExp"><div class="col-header"><span class="col-header-text" onclick="sortColumn('yearsExp')">Yrs Exp</span><div class="col-sort-arrows" onclick="sortColumn('yearsExp')"><span id="sort-yearsExp-asc">▲</span><span id="sort-yearsExp-desc">▼</span></div><button class="col-filter-btn" id="filter-btn-yearsExp" onclick="toggleColDropdown(event, 'yearsExp')">☰</button></div><div class="col-dropdown" id="dropdown-yearsExp"></div></th>
+                        <th style="width: 100px;">Company</th>
+                        <th style="min-width: 280px;">Role</th>
+                        <th style="width: 90px;">Location</th>
+                        <th style="width: 55px;">Yrs Exp</th>
                         <th style="width: 100px;">Apply Link</th>
-                        <th style="width: 100px; position: relative;" data-col="status"><div class="col-header"><span class="col-header-text" onclick="sortColumn('status')">Status</span><div class="col-sort-arrows" onclick="sortColumn('status')"><span id="sort-status-asc">▲</span><span id="sort-status-desc">▼</span></div><button class="col-filter-btn" id="filter-btn-status" onclick="toggleColDropdown(event, 'status')">☰</button></div><div class="col-dropdown" id="dropdown-status"></div></th>
+                        <th style="width: 100px;">Status</th>
                         <th>Notes</th>
                     </tr>
                 </thead>
@@ -290,7 +221,6 @@ window.cleanDuplicates = function() {
             </table>
         </div>
 
-        <div class="resize-divider" id="resizeDivider"></div>
         <div class="referrals-section">
             <h2 style="font-size: 16px; margin-bottom: 10px;"><svg style="width:16px;height:16px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>Company Referrals</h2>
             <table>
@@ -321,52 +251,6 @@ window.cleanDuplicates = function() {
 
 <script>
 // ============================================
-// MAIN APPLICATION SCRIPT
-// ============================================
-let db = null;
-let currentUser = window.currentUser || null;
-let userId = localStorage.getItem('jobTrackerUserId');
-if (!userId) {
-    userId = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-    localStorage.setItem('jobTrackerUserId', userId);
-}
-let positionKeys = [];
-
-function debug(msg) {
-    console.log('[DEBUG]', msg);
-    const panel = document.getElementById('debugPanel');
-    if (panel) {
-        const time = new Date().toLocaleTimeString();
-        panel.innerHTML = `[${time}] ${msg}<br>` + panel.innerHTML;
-    }
-}
-
-// Called from the early script when user joins
-window.onUserJoined = function(name) {
-    currentUser = name;
-    debug('User joined: ' + name);
-    
-    if (db) {
-        debug('Setting up presence and listeners...');
-        setupPresence();
-        setupListeners();
-        initializeDataIfNeeded();
-    } else {
-        debug('✗ Firebase not connected - retrying in 1s...');
-        setTimeout(function() {
-            if (db) {
-                debug('Retry successful, setting up...');
-                setupPresence();
-                setupListeners();
-                initializeDataIfNeeded();
-            } else {
-                alert('Error: Could not connect to Firebase. Please refresh the page.');
-            }
-        }, 1000);
-    }
-};
-
-// ============================================
 // FIREBASE CONFIGURATION
 // ============================================
 const firebaseConfig = {
@@ -379,6 +263,19 @@ const firebaseConfig = {
     appId: "1:360707138428:web:543adb9605d2fbd702faf9"
 };
 
+// Initialize Firebase
+let db = null;
+let currentUser = null;
+let userId = 'user_' + Math.random().toString(36).substr(2, 9);
+let positionKeys = [];
+
+function debug(msg) {
+    console.log('[DEBUG]', msg);
+    const panel = document.getElementById('debugPanel');
+    const time = new Date().toLocaleTimeString();
+    panel.innerHTML = `[${time}] ${msg}<br>` + panel.innerHTML;
+}
+
 try {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
@@ -388,8 +285,30 @@ try {
 }
 
 // ============================================
-// PRESENCE FUNCTIONS
+// USER & PRESENCE
 // ============================================
+function setUserName() {
+    const name = document.getElementById('nameInput').value.trim();
+    if (!name) {
+        alert('Please enter your name');
+        return;
+    }
+    currentUser = name;
+    localStorage.setItem('jobTrackerUserName', name);
+    document.getElementById('nameModal').classList.remove('show');
+    
+    debug('User: ' + name);
+    
+    if (db) {
+        setupPresence();
+        setupListeners();
+        initializeDataIfNeeded();
+    } else {
+        debug('No Firebase - demo mode');
+        loadDemoData();
+    }
+}
+
 function setupPresence() {
     const presenceRef = db.ref('presence/' + userId);
     const connectedRef = db.ref('.info/connected');
@@ -421,17 +340,8 @@ function renderOnlineUsers(users) {
     const container = document.getElementById('onlineUsers');
     container.innerHTML = '';
     
-    // Deduplicate users by name (same person in multiple tabs)
-    const uniqueUsers = {};
     Object.entries(users).forEach(([id, user]) => {
-        const name = user.name;
-        if (!uniqueUsers[name] || id === userId) {
-            uniqueUsers[name] = { id, user };
-        }
-    });
-    
-    Object.entries(uniqueUsers).forEach(([name, {id, user}]) => {
-        const isYou = id === userId || user.name === currentUser;
+        const isYou = id === userId;
         const badge = document.createElement('span');
         badge.className = 'user-badge' + (isYou ? ' you-badge' : '');
         badge.innerHTML = `<span class="user-dot"></span>${user.name}${isYou ? ' (you)' : ''}`;
@@ -444,13 +354,11 @@ function renderOnlineUsers(users) {
 // ============================================
 function initializeDataIfNeeded() {
     db.ref('positions').once('value', (snap) => {
-        const existingCount = snap.exists() ? Object.keys(snap.val()).length : 0;
-        debug('✓ Found ' + existingCount + ' positions');
-        
-        // Always load defaults if less than 10 positions
-        if (existingCount < 10) {
-            debug('Loading default positions...');
-            setTimeout(() => loadDefaultPositions(), 500); // Small delay to ensure function is defined
+        if (!snap.exists()) {
+            debug('Initializing default data...');
+            loadDefaultPositions();
+        } else {
+            debug('✓ Found ' + Object.keys(snap.val()).length + ' positions');
         }
     }).catch(e => {
         debug('✗ Data init error: ' + e.message);
@@ -458,11 +366,6 @@ function initializeDataIfNeeded() {
 }
 
 function loadDefaultPositions() {
-    if (!db) {
-        alert('Not connected to database. Please enter your name and join first.');
-        return;
-    }
-    
     // 1. Get current positions properly
     db.ref('positions').once('value').then((snapshot) => {
         const currentData = snapshot.val() || {};
@@ -490,17 +393,13 @@ function loadDefaultPositions() {
         if (addedCount > 0 || skippedCount > 0) {
             const msg = `✅ Added ${addedCount} new jobs.\n(Skipped ${skippedCount} duplicates)`;
             alert(msg);
-            if (currentUser) logHistory(`added ${addedCount} new jobs (skipped ${skippedCount} duplicates)`);
+            logHistory(`added ${addedCount} new jobs (skipped ${skippedCount} duplicates)`);
             debug(msg);
         } else {
             alert('No new jobs to add (all already exist).');
         }
-    }).catch(e => {
-        alert('Error loading jobs: ' + e.message);
-        console.error(e);
     });
 }
-window.loadDefaultPositions = loadDefaultPositions; // Expose globally
 
 function cleanDuplicates() {
     if (!confirm('This will REMOVE duplicate entries and jobs with generic/search links. Continue?')) return;
@@ -559,7 +458,6 @@ function cleanDuplicates() {
         });
     });
 }
-window.cleanDuplicates = cleanDuplicates; // Expose globally
 
 // ============================================
 // REAL-TIME LISTENERS
@@ -615,12 +513,6 @@ function loadDemoData() {
 // POSITIONS
 // ============================================
 function renderPositions(positions) {
-    // Store all positions for filtering
-    allPositions = positions;
-    applyFilter();
-}
-
-function renderPositionsFiltered(positions) {
     const tbody = document.getElementById('positionsBody');
     tbody.innerHTML = '';
     
@@ -696,7 +588,6 @@ function addPosition() {
         })
         .catch(e => debug('✗ Add error: ' + e.message));
 }
-window.addPosition = addPosition; // Expose globally
 
 function updatePosition(key, field, value) {
     if (!key || !db) return;
@@ -869,98 +760,12 @@ function openLink(btn) {
 // DEFAULT DATA - ENTRY LEVEL (1-3 YRS ONLY)
 // ============================================
 function getDefaultPositions() {
-    // 40 Entry-Level Jobs (1-3 years experience) - Sales/BD/SDR/BDR/Account Management
+    // ONLY verified direct job links - NO search pages
     return [
-        // Anthropic (3 roles)
-        {company: "Anthropic", role: "Business Development Representative", location: "San Francisco", yearsExp: "1-3", link: "https://www.anthropic.com/careers", status: "not-started", notes: "", priority: true},
-        {company: "Anthropic", role: "Sales Development Representative", location: "San Francisco", yearsExp: "1-3", link: "https://www.anthropic.com/careers", status: "not-started", notes: "", priority: true},
-        {company: "Anthropic", role: "Account Executive - Enterprise", location: "San Francisco", yearsExp: "2-3", link: "https://www.anthropic.com/careers", status: "not-started", notes: "", priority: true},
-        
-        // OpenAI (2 roles)
-        {company: "OpenAI", role: "Business Development Representative", location: "San Francisco", yearsExp: "0-2", link: "https://openai.com/careers", status: "not-started", notes: "", priority: true},
-        {company: "OpenAI", role: "Sales Development Representative", location: "San Francisco", yearsExp: "0-2", link: "https://openai.com/careers", status: "not-started", notes: "", priority: true},
-        
-        // Google (2 roles)
-        {company: "Google", role: "Account Strategist", location: "Dublin", yearsExp: "0-2", link: "https://careers.google.com/", status: "not-started", notes: "", priority: true},
-        {company: "Google", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.google.com/", status: "not-started", notes: "", priority: true},
-        
-        // Microsoft (2 roles)
-        {company: "Microsoft", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.microsoft.com/", status: "not-started", notes: "", priority: false},
-        {company: "Microsoft", role: "Account Executive", location: "Dublin", yearsExp: "1-3", link: "https://careers.microsoft.com/", status: "not-started", notes: "", priority: false},
-        
-        // Meta (2 roles)
-        {company: "Meta", role: "Client Solutions Manager", location: "Dublin", yearsExp: "1-3", link: "https://www.metacareers.com/", status: "not-started", notes: "", priority: true},
-        {company: "Meta", role: "Sales Development Representative", location: "Dublin", yearsExp: "1-3", link: "https://www.metacareers.com/", status: "not-started", notes: "", priority: true},
-        
-        // Stripe (2 roles)
-        {company: "Stripe", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://stripe.com/jobs", status: "not-started", notes: "", priority: true},
-        {company: "Stripe", role: "Account Executive", location: "Dublin", yearsExp: "1-3", link: "https://stripe.com/jobs", status: "not-started", notes: "", priority: true},
-        
-        // Adyen (3 roles)
-        {company: "Adyen", role: "Business Development Representative", location: "Amsterdam", yearsExp: "0-2", link: "https://careers.adyen.com/", status: "not-started", notes: "", priority: true},
-        {company: "Adyen", role: "Account Manager", location: "Amsterdam", yearsExp: "1-3", link: "https://careers.adyen.com/", status: "not-started", notes: "", priority: true},
-        {company: "Adyen", role: "Sales Development Representative", location: "Amsterdam", yearsExp: "0-2", link: "https://careers.adyen.com/", status: "not-started", notes: "", priority: true},
-        
-        // Databricks (2 roles)
-        {company: "Databricks", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.databricks.com/company/careers", status: "not-started", notes: "", priority: true},
-        {company: "Databricks", role: "Sales Development Representative", location: "Amsterdam", yearsExp: "0-2", link: "https://www.databricks.com/company/careers", status: "not-started", notes: "", priority: true},
-        
-        // Datadog (3 roles)
-        {company: "Datadog", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.datadoghq.com/", status: "not-started", notes: "", priority: true},
-        {company: "Datadog", role: "Technical Account Manager", location: "Dublin", yearsExp: "2-3", link: "https://careers.datadoghq.com/detail/7555001/", status: "not-started", notes: "Direct link verified.", priority: true},
-        {company: "Datadog", role: "Account Executive", location: "Dublin", yearsExp: "1-3", link: "https://careers.datadoghq.com/", status: "not-started", notes: "", priority: true},
-        
-        // Snowflake (1 role)
-        {company: "Snowflake", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.snowflake.com/", status: "not-started", notes: "", priority: true},
-        
-        // ServiceNow (2 roles)
-        {company: "ServiceNow", role: "Business Development Representative", location: "Dublin", yearsExp: "1-3", link: "https://careers.servicenow.com/", status: "not-started", notes: "", priority: false},
-        {company: "ServiceNow", role: "Sales Development Representative", location: "Dublin", yearsExp: "1-3", link: "https://careers.servicenow.com/", status: "not-started", notes: "", priority: false},
-        
-        // Salesforce (2 roles)
-        {company: "Salesforce", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.salesforce.com/", status: "not-started", notes: "", priority: true},
-        {company: "Salesforce", role: "Account Executive", location: "Dublin", yearsExp: "1-3", link: "https://careers.salesforce.com/", status: "not-started", notes: "", priority: true},
-        
-        // Amazon AWS (2 roles)
-        {company: "Amazon AWS", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.amazon.jobs/", status: "not-started", notes: "", priority: true},
-        {company: "Amazon AWS", role: "Account Manager", location: "Dublin", yearsExp: "1-3", link: "https://www.amazon.jobs/", status: "not-started", notes: "", priority: true},
-        
-        // Palantir (1 role)
-        {company: "Palantir", role: "Business Development Representative", location: "London", yearsExp: "0-2", link: "https://www.palantir.com/careers/", status: "not-started", notes: "", priority: true},
-        
-        // HubSpot (2 roles)
         {company: "HubSpot", role: "BDR - UKI", location: "Dublin", yearsExp: "0-2", link: "https://www.hubspot.com/careers/jobs/4930717", status: "not-started", notes: "Direct link verified.", priority: true},
         {company: "HubSpot", role: "BDR - Benelux (English)", location: "Dublin", yearsExp: "0-2", link: "https://www.hubspot.com/careers/jobs/5220991", status: "not-started", notes: "Direct link verified.", priority: true},
-        
-        // LinkedIn (1 role)
-        {company: "LinkedIn", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://careers.linkedin.com/", status: "not-started", notes: "", priority: false},
-        
-        // Intercom (1 role)
-        {company: "Intercom", role: "Sales Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.intercom.com/careers", status: "not-started", notes: "", priority: true},
-        
-        // Miro (1 role)
-        {company: "Miro", role: "Commercial Account Executive", location: "Amsterdam", yearsExp: "2-3", link: "https://miro.com/careers/open-positions/5628103003", status: "not-started", notes: "Direct link verified.", priority: true},
-        
-        // Notion (1 role)
-        {company: "Notion", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.notion.so/careers", status: "not-started", notes: "", priority: true},
-        
-        // Figma (1 role)
-        {company: "Figma", role: "Business Development Representative", location: "London", yearsExp: "0-2", link: "https://www.figma.com/careers/", status: "not-started", notes: "", priority: true},
-        
-        // Airtable (1 role)
-        {company: "Airtable", role: "Business Development Representative", location: "London", yearsExp: "0-2", link: "https://www.airtable.com/careers", status: "not-started", notes: "", priority: false},
-        
-        // Twilio (1 role)
-        {company: "Twilio", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.twilio.com/company/jobs", status: "not-started", notes: "", priority: false},
-        
-        // Zendesk (1 role)
-        {company: "Zendesk", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://jobs.zendesk.com/", status: "not-started", notes: "", priority: false},
-        
-        // Atlassian (1 role)
-        {company: "Atlassian", role: "Business Development Representative", location: "Amsterdam", yearsExp: "0-2", link: "https://www.atlassian.com/company/careers", status: "not-started", notes: "", priority: false},
-        
-        // Shopify (1 role)
-        {company: "Shopify", role: "Business Development Representative", location: "Dublin", yearsExp: "0-2", link: "https://www.shopify.com/careers", status: "not-started", notes: "", priority: false}
+        {company: "Datadog", role: "Technical Account Manager", location: "Dublin", yearsExp: "2-4", link: "https://careers.datadoghq.com/detail/7555001/", status: "not-started", notes: "Direct link verified.", priority: true},
+        {company: "Miro", role: "Commercial Account Executive", location: "Amsterdam", yearsExp: "2-3", link: "https://miro.com/careers/open-positions/5628103003", status: "not-started", notes: "Direct link verified.", priority: true}
     ];
 }
 
@@ -972,20 +777,8 @@ if (savedName) {
     document.getElementById('nameInput').value = savedName;
 }
 
-// Auto-join if user has saved name and skip modal
-const autoJoinName = savedName || window.currentUser || window.pendingUserName;
-if (autoJoinName && db) {
-    currentUser = autoJoinName;
-    document.getElementById('nameModal').classList.add('hidden');
-    document.getElementById('nameModal').style.display = 'none';
-    debug('Auto-joining as: ' + currentUser);
-    setupPresence();
-    setupListeners();
-    initializeDataIfNeeded();
-}
-
 document.getElementById('nameInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') window.setUserName();
+    if (e.key === 'Enter') setUserName();
 });
 
 // Triple-click title to show debug
@@ -997,186 +790,7 @@ document.querySelector('h1').addEventListener('click', function(e) {
 });
 
 // ============================================
-// EXCEL-STYLE COLUMN FILTER & SORT
-// ============================================
-let currentSort = { column: null, direction: 'asc' };
-let allPositions = [];
-
-const statusLabels = {
-    'not-started': 'Not Started',
-    'waiting-referral': 'Waiting for Referral',
-    'applied': 'Applied',
-    'interview': 'Interview',
-    'rejected': 'Rejected',
-    'offer': 'Offer'
-};
-
-// Track selected filter values per column (multi-select)
-let columnFilterSelections = { company: new Set(), role: new Set(), location: new Set(), status: new Set(), yearsExp: new Set() };
-
-function toggleColDropdown(e, column) {
-    e.stopPropagation();
-    
-    // Close all other dropdowns
-    document.querySelectorAll('.col-dropdown').forEach(d => {
-        if (d.id !== `dropdown-${column}`) d.classList.remove('show');
-    });
-    
-    const dropdown = document.getElementById(`dropdown-${column}`);
-    const isOpen = dropdown.classList.contains('show');
-    
-    if (isOpen) {
-        dropdown.classList.remove('show');
-    } else {
-        // Build dropdown content
-        buildDropdownContent(column);
-        dropdown.classList.add('show');
-    }
-}
-
-function buildDropdownContent(column) {
-    const dropdown = document.getElementById(`dropdown-${column}`);
-    const uniqueValues = [...new Set(allPositions.map(p => p[column]).filter(v => v && v.toString().trim()))].sort();
-    const selected = columnFilterSelections[column];
-    
-    let html = `
-        <div class="col-dropdown-header">
-            <button onclick="selectAllFilter('${column}')">Select All</button>
-            <button onclick="clearFilter('${column}')">Clear All</button>
-        </div>
-        <div class="col-dropdown-values">
-    `;
-    
-    uniqueValues.forEach(val => {
-        const displayVal = column === 'status' ? (statusLabels[val] || val) : val;
-        const isChecked = selected.size === 0 || selected.has(val);
-        html += `<div class="col-dropdown-item">
-            <input type="checkbox" id="filter-${column}-${escapeHtml(val)}" ${isChecked ? 'checked' : ''} onchange="toggleFilterValue('${column}', '${escapeHtml(val)}', this.checked)">
-            <label for="filter-${column}-${escapeHtml(val)}">${escapeHtml(displayVal)}</label>
-        </div>`;
-    });
-    
-    html += `</div>
-        <div class="col-dropdown-apply">
-            <button onclick="applyColumnFilter('${column}')">Apply</button>
-        </div>`;
-    dropdown.innerHTML = html;
-}
-
-function selectAllFilter(column) {
-    columnFilterSelections[column] = new Set();
-    buildDropdownContent(column);
-}
-
-function clearFilter(column) {
-    const uniqueValues = [...new Set(allPositions.map(p => p[column]).filter(v => v && v.toString().trim()))];
-    // Set to empty means "show all", but for clear we want to uncheck all
-    columnFilterSelections[column] = new Set(['__NONE__']); // Special marker for "nothing selected"
-    buildDropdownContent(column);
-}
-
-function toggleFilterValue(column, value, checked) {
-    const selected = columnFilterSelections[column];
-    
-    // If currently showing all (empty set), initialize with all values
-    if (selected.size === 0) {
-        const uniqueValues = [...new Set(allPositions.map(p => p[column]).filter(v => v && v.toString().trim()))];
-        uniqueValues.forEach(v => selected.add(v));
-    }
-    
-    // Remove special marker if present
-    selected.delete('__NONE__');
-    
-    if (checked) {
-        selected.add(value);
-    } else {
-        selected.delete(value);
-    }
-}
-
-function applyColumnFilter(column) {
-    closeAllDropdowns();
-    applyFilter();
-    
-    // Update filter button to show it's active
-    const btn = document.getElementById(`filter-btn-${column}`);
-    const selected = columnFilterSelections[column];
-    const uniqueValues = [...new Set(allPositions.map(p => p[column]).filter(v => v && v.toString().trim()))];
-    
-    if (btn) {
-        // Filtered if not all values selected
-        const isFiltered = selected.size > 0 && selected.size < uniqueValues.length && !selected.has('__NONE__');
-        btn.classList.toggle('filtered', isFiltered);
-    }
-}
-
-function sortColumn(column, direction) {
-    // If direction not provided, toggle
-    if (!direction) {
-        if (currentSort.column === column) {
-            direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-        } else {
-            direction = 'asc';
-        }
-    }
-    
-    currentSort = { column, direction };
-    closeAllDropdowns();
-    applyFilter();
-    
-    // Update sort arrow indicators
-    document.querySelectorAll('.col-sort-arrows span').forEach(span => {
-        span.classList.remove('active');
-    });
-    const activeArrow = document.getElementById(`sort-${column}-${direction}`);
-    if (activeArrow) activeArrow.classList.add('active');
-}
-
-function closeAllDropdowns() {
-    document.querySelectorAll('.col-dropdown').forEach(d => d.classList.remove('show'));
-}
-
-// Close dropdowns when clicking outside
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.col-dropdown') && !e.target.closest('.col-filter-btn')) {
-        closeAllDropdowns();
-    }
-});
-
-function applyFilter() {
-    let filtered = allPositions;
-    
-    // Apply all column filters (multi-select)
-    Object.keys(columnFilterSelections).forEach(col => {
-        const selected = columnFilterSelections[col];
-        if (selected.size > 0 && !selected.has('__NONE__')) {
-            filtered = filtered.filter(p => selected.has((p[col] || '').toString()));
-        } else if (selected.has('__NONE__')) {
-            filtered = []; // Nothing selected
-        }
-    });
-    
-    // Apply current sort
-    if (currentSort.column) {
-        filtered = sortPositions(filtered, currentSort.column, currentSort.direction);
-    }
-    
-    renderPositionsFiltered(filtered);
-}
-
-function sortPositions(positions, column, direction) {
-    return [...positions].sort((a, b) => {
-        let valA = (a[column] || '').toString().toLowerCase();
-        let valB = (b[column] || '').toString().toLowerCase();
-        
-        if (valA < valB) return direction === 'asc' ? -1 : 1;
-        if (valA > valB) return direction === 'asc' ? 1 : -1;
-        return 0;
-    });
-}
-
-// ============================================
-// RESIZABLE COLUMNS (Fixed)
+// RESIZABLE COLUMNS
 // ============================================
 function initResizableColumns() {
     const tables = document.querySelectorAll('table');
@@ -1194,32 +808,28 @@ function initResizableColumns() {
                 th.style.width = savedWidths[colIndex] + 'px';
             }
             
-            // Make resizable (skip first delete column for positions table)
+            // Make resizable (skip first delete column)
             if (colIndex > 0 || tableIndex === 1) {
                 th.classList.add('resizable');
                 
-                // Create resize handle
-                const handle = document.createElement('div');
-                handle.style.cssText = 'position:absolute;right:0;top:0;bottom:0;width:8px;cursor:col-resize;z-index:10;';
-                th.style.position = 'relative';
-                th.appendChild(handle);
-                
                 let startX, startWidth;
                 
-                handle.addEventListener('mousedown', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    startX = e.pageX;
-                    startWidth = th.offsetWidth;
-                    th.classList.add('resizing');
-                    
-                    document.addEventListener('mousemove', onMouseMove);
-                    document.addEventListener('mouseup', onMouseUp);
+                th.addEventListener('mousedown', function(e) {
+                    // Only if clicking the resize handle area (right 5px)
+                    const rect = th.getBoundingClientRect();
+                    if (e.clientX > rect.right - 10) {
+                        e.preventDefault();
+                        startX = e.clientX;
+                        startWidth = th.offsetWidth;
+                        th.classList.add('resizing');
+                        
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                    }
                 });
                 
                 function onMouseMove(e) {
-                    const diff = e.pageX - startX;
-                    const newWidth = Math.max(40, startWidth + diff);
+                    const newWidth = Math.max(40, startWidth + (e.clientX - startX));
                     th.style.width = newWidth + 'px';
                 }
                 
@@ -1238,43 +848,6 @@ function initResizableColumns() {
             }
         });
     });
-    
-    // Make referrals section width persistent via drag divider
-    const referralsSection = document.querySelector('.referrals-section');
-    const divider = document.getElementById('resizeDivider');
-    
-    if (referralsSection && divider) {
-        const savedWidth = localStorage.getItem('referralsSectionWidth');
-        if (savedWidth) {
-            referralsSection.style.width = savedWidth + 'px';
-        }
-        
-        let startX, startWidth;
-        
-        divider.addEventListener('mousedown', function(e) {
-            e.preventDefault();
-            startX = e.pageX;
-            startWidth = referralsSection.offsetWidth;
-            divider.classList.add('dragging');
-            
-            document.addEventListener('mousemove', onDividerMove);
-            document.addEventListener('mouseup', onDividerUp);
-        });
-        
-        function onDividerMove(e) {
-            // Dragging left makes referrals bigger, right makes it smaller
-            const diff = startX - e.pageX;
-            const newWidth = Math.max(200, Math.min(500, startWidth + diff));
-            referralsSection.style.width = newWidth + 'px';
-        }
-        
-        function onDividerUp() {
-            divider.classList.remove('dragging');
-            document.removeEventListener('mousemove', onDividerMove);
-            document.removeEventListener('mouseup', onDividerUp);
-            localStorage.setItem('referralsSectionWidth', referralsSection.offsetWidth);
-        }
-    }
 }
 
 // Initialize resizable columns after page loads
