@@ -1,2 +1,28 @@
-# Local Netlify folder
-.netlify
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+.cursor/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+
+# Netlify (not using anymore)
+.netlify/
+
+# Fetched Greenhouse job data (large)
+hubspot.json
+datadog.json
+databricks.json
+anthropic.json
