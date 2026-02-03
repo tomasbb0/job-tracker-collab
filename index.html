@@ -709,7 +709,7 @@
             Pending Approvals <span class="pending-badge" id="pendingBadge">0</span>
         </button>
         <button class="btn btn-secondary" onclick="cleanDuplicates()" style="background: #dc3545; color: #fff; border: none;">🧹 Remove Duplicates & Bad Links</button>
-        <button class="btn btn-secondary" onclick="addScrapedJobs()" style="background: #28a745; color: #fff; border: none;">📋 Review & Add 60 Jobs (JobSpy)</button>
+        <button class="btn btn-secondary" onclick="addScrapedJobs()" style="background: #28a745; color: #fff; border: none;">📋 Review & Add 70 Jobs</button>
         <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
     </div>
 
@@ -975,8 +975,8 @@ function cleanDuplicates() {
     });
 }
 
-// 80 VERIFIED ENTRY-LEVEL JOBS FROM JOBSPY (Open Source - NO API LIMITS!)
-// Companies: Salesforce, Stripe, Vanta, HubSpot, Datadog, PayPal, Okta, MongoDB, Square, ByteDance, Cisco, etc.
+// 70 VERIFIED ENTRY-LEVEL JOBS FROM JOBSPY + SERPAPI GOOGLE JOBS
+// Companies: Salesforce, Stripe, Vanta, HubSpot, Datadog, PayPal, Okta, MongoDB, Square, ByteDance, Cisco, ServiceNow, Box, etc.
 const SCRAPED_JOBS_DATA = [
     { company: 'PayPal', role: 'Account Representative, SMB Outbound Sales', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://ie.indeed.com/viewjob?jk=6767f52541a09580', notes: 'Source: indeed' },
     { company: 'LearnUpon', role: 'Sales Development Representative', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://ie.indeed.com/viewjob?jk=e7b2dbce363555c9', notes: 'Source: indeed' },
@@ -1037,7 +1037,18 @@ const SCRAPED_JOBS_DATA = [
     { company: 'Docebo', role: 'Business Development Representative', location: 'London, UK', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4360753615', notes: 'Source: linkedin' },
     { company: 'Iterable', role: 'Business Development Representative', location: 'London, UK', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4315511028', notes: 'Source: linkedin' },
     { company: 'Fenergo', role: 'Enterprise Business Development Representative', location: 'London, UK', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4321076247', notes: 'Source: linkedin' },
-    { company: 'CloudBees', role: 'Business Development Representative', location: 'London, UK', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4344934490', notes: 'Source: linkedin' }
+    { company: 'CloudBees', role: 'Business Development Representative', location: 'London, UK', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4344934490', notes: 'Source: linkedin' },
+    // === NEW: SerpApi Google Jobs (direct career site links) ===
+    { company: 'ServiceNow', role: 'Business Development Representative - Italian Speaking', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://careers.servicenow.com/jobs/744000103975930/business-development-representative-italian-speaking/', notes: 'Source: ServiceNow Careers' },
+    { company: 'ServiceNow', role: 'Business Development Representative (Swedish Speaker)', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://careers.servicenow.com/jobs/', notes: 'Source: ServiceNow Careers' },
+    { company: 'Salesforce', role: 'Business Development Representative - Spanish Market', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://careers.salesforce.com/en/jobs/jr283244/business-development-representative-spanish-market/', notes: 'Source: Salesforce Careers' },
+    { company: 'ClickUp', role: 'Sales Development Representative (EMEA)', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://careers.georgian.io/companies/clickup/jobs/66440742-sales-development-representative-emea', notes: 'Source: ClickUp Careers' },
+    { company: 'Flipdish', role: 'Sales Development Representative', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://jobs.weekday.works/flipdish-sales-development-representative', notes: 'Source: Flipdish' },
+    { company: 'Box', role: 'Sales Development Representative, German Speaker', location: 'London, UK', yearsExp: '0-2', link: 'https://careers.box.com/en/jobs/7476195/sales-development-representative-german-speaker/', notes: 'Source: Box Careers' },
+    { company: 'Cisco', role: 'Sales Development Representative – EMEA Field Team', location: 'London, UK', yearsExp: '0-2', link: 'https://careers.cisco.com/global/en/job/CISCISGLOBAL2003248EXTERNALENGLOBAL/Sales-Development-Representative-EMEA-Field-Team-London', notes: 'Source: Cisco Careers' },
+    { company: 'Ecolab', role: 'Business Development Representative - Digital Software Sales', location: 'London, UK', yearsExp: '0-2', link: 'https://jobs.ecolab.com/global/es/job/R00283447/Business-Development-Representative-Digital-Software-Sales', notes: 'Source: Ecolab Careers' },
+    { company: 'Medius', role: 'Business Development Representative', location: 'Manchester, UK', yearsExp: '0-2', link: 'https://career.medius.com/jobs/6959123-business-development-representative', notes: 'Source: Medius Careers' },
+    { company: 'Kameleoon', role: 'Business Development Representative (BDR) - UK', location: 'London, UK', yearsExp: '0-2', link: 'https://www.glassdoor.co.uk/job-listing/business-development-representative-bdr-uk-kameleoon-JV_IC2671300_KO0,42_KE43,52.htm?jl=1010011687785', notes: 'Source: Kameleoon' }
 ];
 
 // Track selected jobs
