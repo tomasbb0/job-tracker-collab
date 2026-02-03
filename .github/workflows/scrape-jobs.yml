@@ -44,6 +44,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           ENABLE_BROWSER_SCRAPING: ${{ github.event.inputs.enable_browser || 'false' }}
+          SKIP_WORKDAY: 'true'
         run: npm run scrape
 
       - name: Upload scrape logs
