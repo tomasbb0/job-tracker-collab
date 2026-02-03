@@ -11,7 +11,7 @@
     "scrape:browser": "node scraper/browser.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.24.0",
+    "@google/generative-ai": "^0.21.0",
     "firebase-admin": "^12.0.0",
     "node-fetch": "^3.3.2",
     "puppeteer": "^22.0.0"

@@ -41,7 +41,7 @@ jobs:
 
       - name: Run job scraper
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           ENABLE_BROWSER_SCRAPING: ${{ github.event.inputs.enable_browser || 'false' }}
         run: npm run scrape

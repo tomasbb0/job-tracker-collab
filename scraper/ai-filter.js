@@ -1,12 +1,13 @@
 /**
  * AI Filter Module
- * Uses Claude API to analyze job descriptions and filter based on criteria
+ * Uses Google Gemini (FREE) to analyze job descriptions and filter based on criteria
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import companies from './companies.json' assert { type: 'json' };
 
-const anthropic = new Anthropic();
+// Initialize Gemini with API key from environment
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const FILTER_CRITERIA = companies.filterCriteria;
 
@@ -60,12 +61,14 @@ LANGUAGE DETECTION:
 - Spanish = "es", Portuguese = "pt"`;
 
 /**
- * Analyze a single job with Claude
+ * Analyze a single job with Gemini
  * @param {Object} job - Job object with role, description, etc.
  * @returns {Promise<Object>} - Analysis result
  */
 async function analyzeJob(job) {
-    const userPrompt = `Analyze this job posting:
+    const userPrompt = `${SYSTEM_PROMPT}
+
+Analyze this job posting:
 
 COMPANY: ${job.company}
 ROLE: ${job.role}
@@ -74,19 +77,15 @@ LOCATION: ${job.location}
 DESCRIPTION:
 ${job.description?.substring(0, 3000) || 'No description available'}
 
-Return ONLY the JSON analysis object.`;
+Return ONLY the JSON analysis object, nothing else.`;
 
     try {
-        const response = await anthropic.messages.create({
-            model: 'claude-3-haiku-20240307', // Using Haiku for cost efficiency
-            max_tokens: 500,
-            messages: [
-                { role: 'user', content: userPrompt }
-            ],
-            system: SYSTEM_PROMPT
-        });
-
-        const content = response.content[0].text;
+        // Use Gemini 1.5 Flash (fast and free)
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        
+        const result = await model.generateContent(userPrompt);
+        const response = await result.response;
+        const content = response.text();
         
         // Parse JSON response
         const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -126,7 +125,7 @@ Return ONLY the JSON analysis object.`;
 async function batchAnalyzeJobs(jobs, batchSize = 5, delayMs = 1000) {
     const results = [];
     
-    console.log(`\n🤖 Analyzing ${jobs.length} jobs with AI...`);
+    console.log(`\n🤖 Analyzing ${jobs.length} jobs with Gemini AI (FREE)...`);
     
     for (let i = 0; i < jobs.length; i += batchSize) {
         const batch = jobs.slice(i, i + batchSize);
@@ -145,7 +144,7 @@ async function batchAnalyzeJobs(jobs, batchSize = 5, delayMs = 1000) {
         
         results.push(...batchResults);
         
-        // Rate limiting delay between batches
+        // Rate limiting delay between batches (Gemini free tier: 60 req/min)
         if (i + batchSize < jobs.length) {
             await new Promise(resolve => setTimeout(resolve, delayMs));
         }
@@ -178,6 +177,13 @@ function filterAnalyzedJobs(analyzedJobs) {
  */
 export async function filterJobsWithAI(jobs) {
     console.log(`\n🔍 Starting AI filtering for ${jobs.length} jobs...`);
+    
+    // Check for API key
+    if (!process.env.GEMINI_API_KEY) {
+        console.error('❌ GEMINI_API_KEY environment variable is not set!');
+        console.log('   Get your FREE API key at: https://aistudio.google.com/app/apikey');
+        return [];
+    }
     
     // Analyze all jobs
     const analyzedJobs = await batchAnalyzeJobs(jobs);
