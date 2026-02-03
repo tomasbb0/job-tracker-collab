@@ -709,7 +709,7 @@
             Pending Approvals <span class="pending-badge" id="pendingBadge">0</span>
         </button>
         <button class="btn btn-secondary" onclick="cleanDuplicates()" style="background: #dc3545; color: #fff; border: none;">🧹 Remove Duplicates & Bad Links</button>
-        <button class="btn btn-secondary" onclick="addScrapedJobs()" style="background: #28a745; color: #fff; border: none;">📋 Review & Add 70 Jobs</button>
+        <button class="btn btn-secondary" onclick="addScrapedJobs()" style="background: #28a745; color: #fff; border: none;">📋 Review Jobs (Target + Other)</button>
         <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
     </div>
 
@@ -975,9 +975,70 @@ function cleanDuplicates() {
     });
 }
 
-// 70 VERIFIED ENTRY-LEVEL JOBS FROM JOBSPY + SERPAPI GOOGLE JOBS
-// Companies: Salesforce, Stripe, Vanta, HubSpot, Datadog, PayPal, Okta, MongoDB, Square, ByteDance, Cisco, ServiceNow, Box, etc.
-const SCRAPED_JOBS_DATA = [
+// TARGET COMPANIES LIST (your exact companies from the list)
+const TARGET_COMPANY_NAMES = [
+    // Big Tech
+    'Google', 'Microsoft', 'Apple', 'Amazon', 'Meta', 'NVIDIA',
+    // Fintech/Payments
+    'Stripe', 'Salesforce', 'Square', 'PayPal',
+    // SaaS Giants
+    'Databricks', 'Snowflake', 'Datadog', 'ServiceNow', 'HubSpot', 'Workday',
+    // Other Top Tech
+    'Airbnb', 'Uber', 'Spotify', 'Tesla', 'Cloudflare', 'Twilio',
+    'Adobe', 'Cisco', 'SAP', 'ASML', 'TikTok', 'ByteDance', 'Palantir'
+];
+
+// === TARGET COMPANIES JOBS (Your 22 companies) ===
+const TARGET_JOBS = [
+    // GOOGLE
+    { company: 'Google', role: 'Senior Accelerated Growth Consultant, Dutch Market', location: 'Dublin, Ireland', yearsExp: '3+', link: 'https://ie.linkedin.com/jobs/view/senior-accelerated-growth-consultant-google-customer-solutions-dutch-market-dutch-english-at-google-4367131401', notes: 'Direct from Google' },
+    // META
+    { company: 'Meta', role: 'Account Manager, SMB, UK&I', location: 'Dublin, Ireland', yearsExp: '2-4', link: 'https://www.metacareers.com/profile/job_details/666581476443942', notes: 'Direct from Meta Careers' },
+    // MICROSOFT
+    { company: 'Microsoft', role: 'Digital Enterprise Sales Specialist - Security (Portuguese)', location: 'Dublin, Ireland', yearsExp: '2-4', link: 'https://ie.linkedin.com/jobs/view/digital-enterprise-sales-specialist-security-portuguese-speaking-at-microsoft-4367442094', notes: 'Portuguese speaker - perfect fit!' },
+    // APPLE
+    { company: 'Apple', role: 'Client Strategist - Future Opportunities', location: 'Dublin, Ireland', yearsExp: '1-3', link: 'https://ie.linkedin.com/jobs/view/client-strategist-future-opportunities-at-apple-4367207510', notes: 'Direct from Apple' },
+    // AMAZON
+    { company: 'Amazon', role: 'EMEA Sales Planning Lead', location: 'Dublin, Ireland', yearsExp: '3+', link: 'https://www.amazon.jobs/en/jobs/', notes: 'From Amazon Jobs' },
+    // TESLA
+    { company: 'Tesla', role: 'Used Car Sales Advisor - Dublin', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/used-car-sales-advisor-dublin-at-tesla-4315336419', notes: 'Entry-level!' },
+    // AIRBNB
+    { company: 'Airbnb', role: 'Services Vendor Performance Manager', location: 'Dublin, Ireland', yearsExp: '2-4', link: 'https://ie.linkedin.com/jobs/view/services-vendor-performance-manager-contract-at-airbnb-4365769252', notes: 'Contract role' },
+    // UBER
+    { company: 'Uber', role: 'Sales Manager, Uber Eats, Ireland', location: 'Dublin, Ireland', yearsExp: '2-4', link: 'https://www.uber.com/careers/list/151648', notes: 'Direct from Uber' },
+    // STRIPE
+    { company: 'Stripe', role: 'UKI Sales Development Representative', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4358965028', notes: 'Entry-level SDR' },
+    { company: 'Stripe', role: 'Sales Development Representative (Dutch-speaking)', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4367459600', notes: 'Dutch speaker' },
+    { company: 'Stripe', role: 'Sales Development Representative, Spanish', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4358126031', notes: 'Spanish speaker - great fit!' },
+    // HUBSPOT
+    { company: 'HubSpot', role: 'Corporate Business Development Representative', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4302565371', notes: 'Entry-level BDR' },
+    // SALESFORCE
+    { company: 'Salesforce', role: 'Business Development Rep', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://ie.indeed.com/viewjob?jk=3d4f1e54b9e77f82', notes: 'Entry-level' },
+    { company: 'Salesforce', role: 'Business Development Representative - Spanish Market', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://careers.salesforce.com/en/jobs/jr283244/business-development-representative-spanish-market/', notes: 'Spanish market!' },
+    // SERVICENOW
+    { company: 'ServiceNow', role: 'Business Development Representative - Italian Speaking', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://careers.servicenow.com/jobs/744000103975930/business-development-representative-italian-speaking/', notes: 'Entry-level' },
+    // CISCO
+    { company: 'Cisco', role: 'Sales Development Representative – EMEA Field Team', location: 'London, UK', yearsExp: '0-2', link: 'https://careers.cisco.com/global/en/job/CISCISGLOBAL2003248EXTERNALENGLOBAL/Sales-Development-Representative-EMEA-Field-Team-London', notes: 'Entry-level SDR' },
+    // DATABRICKS
+    { company: 'Databricks', role: 'Account Executive - Digital Native', location: 'Dublin, Ireland', yearsExp: '2-4', link: 'https://boards.greenhouse.io/databricks/', notes: 'From Greenhouse' },
+    // CLOUDFLARE
+    { company: 'Cloudflare', role: 'Territory Account Executive', location: 'Dublin, Ireland', yearsExp: '1-3', link: 'https://boards.greenhouse.io/cloudflare/jobs/', notes: 'From Greenhouse' },
+    // BYTEDANCE
+    { company: 'ByteDance', role: 'Sales Development Representative (AI), BytePlus', location: 'London, UK', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4366596563', notes: 'AI/BytePlus division' },
+    // DATADOG
+    { company: 'Datadog', role: 'Sales Development Representative - Italy', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4359401857', notes: 'Entry-level SDR' },
+    // WORKDAY
+    { company: 'Workday', role: 'Business Development Representative (French Speaker)', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://ie.indeed.com/viewjob?jk=3e24f4d6860805b3', notes: 'French speaker' },
+    // TWILIO
+    { company: 'Twilio', role: 'Account Executive', location: 'Dublin, Ireland', yearsExp: '1-3', link: 'https://boards.greenhouse.io/twilio/', notes: 'From Greenhouse' },
+    // PAYPAL
+    { company: 'PayPal', role: 'Account Representative, SMB Outbound Sales', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://ie.indeed.com/viewjob?jk=6767f52541a09580', notes: 'Entry-level' },
+    // SQUARE
+    { company: 'Square', role: 'Business Development Representative Associate', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://www.linkedin.com/jobs/view/4350177329', notes: 'Entry-level' },
+];
+
+// === OTHER COMPANIES (Good companies, not on your target list) ===
+const OTHER_JOBS = [
     { company: 'PayPal', role: 'Account Representative, SMB Outbound Sales', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://ie.indeed.com/viewjob?jk=6767f52541a09580', notes: 'Source: indeed' },
     { company: 'LearnUpon', role: 'Sales Development Representative', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://ie.indeed.com/viewjob?jk=e7b2dbce363555c9', notes: 'Source: indeed' },
     { company: 'beqom', role: 'Business Development Representative (BDR)', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://ie.indeed.com/viewjob?jk=f9693a3b14debd9d', notes: 'Source: indeed' },
@@ -1051,6 +1112,15 @@ const SCRAPED_JOBS_DATA = [
     { company: 'Kameleoon', role: 'Business Development Representative (BDR) - UK', location: 'London, UK', yearsExp: '0-2', link: 'https://www.glassdoor.co.uk/job-listing/business-development-representative-bdr-uk-kameleoon-JV_IC2671300_KO0,42_KE43,52.htm?jl=1010011687785', notes: 'Source: Kameleoon' }
 ];
 
+// Combine all jobs for the modal
+const ALL_SCRAPED_JOBS = [...TARGET_JOBS, ...OTHER_JOBS];
+
+// Check if company is in target list
+function isTargetCompany(companyName) {
+    const name = (companyName || '').toLowerCase();
+    return TARGET_COMPANY_NAMES.some(t => name.includes(t.toLowerCase()) || t.toLowerCase().includes(name.split(/[,\s]/)[0]));
+}
+
 // Track selected jobs
 let scrapedJobsSelection = new Set();
 
@@ -1058,8 +1128,11 @@ let scrapedJobsSelection = new Set();
 function addScrapedJobs() {
     if (!db) { alert('Not connected to database.'); return; }
     
-    // Reset selection
-    scrapedJobsSelection = new Set(SCRAPED_JOBS_DATA.map((_, i) => i)); // All selected by default
+    // Select all TARGET jobs by default, none of the "other" jobs
+    scrapedJobsSelection = new Set();
+    ALL_SCRAPED_JOBS.forEach((job, i) => {
+        if (isTargetCompany(job.company)) scrapedJobsSelection.add(i);
+    });
     renderScrapedJobsTable();
     document.getElementById('scrapedJobsModal').classList.add('show');
 }
@@ -1069,11 +1142,22 @@ function closeScrapedJobsModal() {
     document.getElementById('scrapedJobsModal').classList.remove('show');
 }
 
-// Render scraped jobs table
+// Render scraped jobs table with TWO SECTIONS
 function renderScrapedJobsTable() {
     const tbody = document.getElementById('scrapedJobsTableBody');
     
-    tbody.innerHTML = SCRAPED_JOBS_DATA.map((job, idx) => {
+    // Separate into target vs other
+    const targetJobs = [];
+    const otherJobs = [];
+    ALL_SCRAPED_JOBS.forEach((job, idx) => {
+        if (isTargetCompany(job.company)) {
+            targetJobs.push({ job, idx });
+        } else {
+            otherJobs.push({ job, idx });
+        }
+    });
+    
+    const renderRow = ({ job, idx }) => {
         const isSelected = scrapedJobsSelection.has(idx);
         return `
             <tr class="${isSelected ? 'selected' : 'removed'}" data-idx="${idx}">
@@ -1090,7 +1174,14 @@ function renderScrapedJobsTable() {
                 </td>
             </tr>
         `;
-    }).join('');
+    };
+    
+    tbody.innerHTML = `
+        <tr><td colspan="6" style="background:#e8f5e9;font-weight:bold;padding:12px;">TARGET COMPANIES (${targetJobs.length} jobs from your list)</td></tr>
+        ${targetJobs.map(renderRow).join('')}
+        <tr><td colspan="6" style="background:#fff3e0;font-weight:bold;padding:12px;margin-top:20px;">OTHER COMPANIES (${otherJobs.length} additional jobs)</td></tr>
+        ${otherJobs.map(renderRow).join('')}
+    `;
     
     updateScrapedJobsCount();
 }
@@ -1119,7 +1210,7 @@ function addSingleScrapedJob(idx) {
 
 // Select all jobs
 function selectAllScrapedJobs() {
-    scrapedJobsSelection = new Set(SCRAPED_JOBS_DATA.map((_, i) => i));
+    scrapedJobsSelection = new Set(ALL_SCRAPED_JOBS.map((_, i) => i));
     renderScrapedJobsTable();
 }
 
@@ -1131,7 +1222,8 @@ function removeAllScrapedJobs() {
 
 // Update count display
 function updateScrapedJobsCount() {
-    document.getElementById('scrapedJobsCount').textContent = `${scrapedJobsSelection.size} of ${SCRAPED_JOBS_DATA.length} jobs selected`;
+    const targetCount = [...scrapedJobsSelection].filter(i => isTargetCompany(ALL_SCRAPED_JOBS[i]?.company)).length;
+    document.getElementById('scrapedJobsCount').textContent = `${scrapedJobsSelection.size} selected (${targetCount} from target list)`;
 }
 
 // Add all selected jobs to database
@@ -1156,7 +1248,7 @@ function addAllScrapedJobs() {
         
         // Only add selected jobs
         scrapedJobsSelection.forEach(idx => {
-            const job = SCRAPED_JOBS_DATA[idx];
+            const job = ALL_SCRAPED_JOBS[idx];
             const sig = (job.company + '|' + job.role + '|' + job.link).toLowerCase();
             
             if (existingSigs.has(sig)) {

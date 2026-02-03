@@ -8,6 +8,7 @@
 import { scrapeGreenhouseJobs } from './greenhouse.js';
 import { scrapeWorkdayJobs } from './workday.js';
 import { scrapeBrowserJobs } from './browser.js';
+import { fillMissingCompanies } from './serpapi-fallback.js';
 import { filterJobsWithAI } from './ai-filter.js';
 import { initFirebase, addPendingJobs, logScrapeHistory } from './firebase.js';
 
@@ -94,8 +95,16 @@ async function main() {
         }
         
         // Combine all jobs
-        const allJobs = [...greenhouseJobs, ...workdayJobs, ...browserJobs];
+        let allJobs = [...greenhouseJobs, ...workdayJobs, ...browserJobs];
         stats.totalScraped = allJobs.length;
+        
+        // SerpApi fallback: ensure EVERY company returns at least 1 job (validation)
+        const fallbackJobs = await fillMissingCompanies(allJobs);
+        if (fallbackJobs.length > 0) {
+            allJobs = [...allJobs, ...fallbackJobs];
+            stats.totalScraped = allJobs.length;
+            console.log(`\n   Added ${fallbackJobs.length} jobs via SerpApi fallback`);
+        }
         
         console.log('\n' + '─'.repeat(60));
         console.log('AI FILTERING');
