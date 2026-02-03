@@ -50,15 +50,25 @@ async function main() {
             stats.errors.push({ source: 'greenhouse', error: error.message });
         }
         
-        // Scrape Workday companies (Tier 2)
+        // Scrape Workday companies (Tier 2) - with timeout
         console.log('\n' + '─'.repeat(60));
         console.log('TIER 2: WORKDAY COMPANIES');
         console.log('─'.repeat(60));
         
         let workdayJobs = [];
         try {
-            workdayJobs = await scrapeWorkdayJobs();
-            stats.workdayJobs = workdayJobs.length;
+            // Skip Workday if disabled (it can be slow/unreliable)
+            if (process.env.SKIP_WORKDAY === 'true') {
+                console.log('⏭️ Workday scraping disabled (SKIP_WORKDAY=true)');
+            } else {
+                // Add 2-minute timeout for Workday scraping
+                const workdayPromise = scrapeWorkdayJobs();
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Workday scraping timed out after 2 minutes')), 120000)
+                );
+                workdayJobs = await Promise.race([workdayPromise, timeoutPromise]);
+                stats.workdayJobs = workdayJobs.length;
+            }
         } catch (error) {
             console.error('Workday scraping failed:', error.message);
             stats.errors.push({ source: 'workday', error: error.message });

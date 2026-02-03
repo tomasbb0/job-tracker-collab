@@ -7,6 +7,24 @@
 import companies from './companies.json' assert { type: 'json' };
 
 /**
+ * Fetch with timeout
+ */
+async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+        return response;
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
+/**
  * Build Workday API URL for a company
  * Workday uses a consistent pattern for their career site APIs
  */
