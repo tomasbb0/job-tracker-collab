@@ -352,6 +352,80 @@
             50% { opacity: 0.7; }
         }
         
+        /* Scraped Jobs Table */
+        .scraped-jobs-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .scraped-jobs-table th {
+            background: #f5f5f5;
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .scraped-jobs-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        .scraped-jobs-table tr:hover {
+            background: #f9f9f9;
+        }
+        .scraped-jobs-table tr.selected {
+            background: #e8f5e9;
+        }
+        .scraped-jobs-table tr.removed {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+        .scraped-jobs-table .company-cell {
+            font-weight: 600;
+            color: #1a73e8;
+        }
+        .scraped-jobs-table .role-cell {
+            max-width: 300px;
+        }
+        .scraped-jobs-table .role-cell a {
+            color: #333;
+            text-decoration: none;
+        }
+        .scraped-jobs-table .role-cell a:hover {
+            color: #1a73e8;
+            text-decoration: underline;
+        }
+        .scraped-jobs-table .action-btn {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .scraped-jobs-table .add-btn {
+            background: #28a745;
+            color: white;
+        }
+        .scraped-jobs-table .add-btn:hover {
+            background: #218838;
+        }
+        .scraped-jobs-table .remove-btn {
+            background: #dc3545;
+            color: white;
+        }
+        .scraped-jobs-table .remove-btn:hover {
+            background: #c82333;
+        }
+        .scraped-jobs-table input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
         /* Approval Modal */
         .approval-modal { 
             display: none; 
@@ -567,6 +641,38 @@
     </div>
 </div>
 
+<!-- Scraped Jobs Review Modal -->
+<div class="approval-modal" id="scrapedJobsModal">
+    <div class="approval-modal-content" style="max-width: 1100px;">
+        <div class="approval-modal-header">
+            <h2>📋 Review Scraped Jobs</h2>
+            <button onclick="closeScrapedJobsModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
+        </div>
+        <div class="approval-modal-actions">
+            <button class="btn btn-approve-all" onclick="addAllScrapedJobs()" style="background: #28a745;">✓ Add All Selected</button>
+            <button class="btn btn-reject-all" onclick="removeAllScrapedJobs()" style="background: #dc3545;">✗ Deselect All</button>
+            <button class="btn btn-secondary" onclick="selectAllScrapedJobs()">☑ Select All</button>
+            <span style="flex: 1;"></span>
+            <span id="scrapedJobsCount" style="font-size: 12px; color: #666; align-self: center;">0 jobs selected</span>
+        </div>
+        <div class="approval-modal-body" id="scrapedJobsList" style="overflow-x: auto;">
+            <table class="scraped-jobs-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">☑</th>
+                        <th style="width: 120px;">Company</th>
+                        <th style="min-width: 200px;">Role</th>
+                        <th style="width: 100px;">Location</th>
+                        <th style="width: 80px;">Exp</th>
+                        <th style="width: 100px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="scrapedJobsTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <div class="connection-lost" id="connectionLost">
     <svg style="width:14px;height:14px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>Connection lost. Trying to reconnect...
 </div>
@@ -603,7 +709,7 @@
             Pending Approvals <span class="pending-badge" id="pendingBadge">0</span>
         </button>
         <button class="btn btn-secondary" onclick="cleanDuplicates()" style="background: #dc3545; color: #fff; border: none;">🧹 Remove Duplicates & Bad Links</button>
-        <button class="btn btn-secondary" onclick="addScrapedJobs()" style="background: #28a745; color: #fff; border: none;">➕ Add 26 Verified Entry-Level Jobs</button>
+        <button class="btn btn-secondary" onclick="addScrapedJobs()" style="background: #28a745; color: #fff; border: none;">📋 Review & Add Scraped Jobs</button>
         <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
     </div>
 
@@ -869,74 +975,140 @@ function cleanDuplicates() {
     });
 }
 
-// Add scraped entry-level jobs (from scraper)
+// VERIFIED ENTRY-LEVEL JOBS DATA
+const SCRAPED_JOBS_DATA = [
+    // STRIPE - SDR roles
+    { company: 'Stripe', role: 'Sales Development Representative, Spanish', location: 'Dublin', yearsExp: '0-2', link: 'https://stripe.com/jobs/search?gh_jid=7385839', notes: 'Spanish market - your language!' },
+    { company: 'Stripe', role: 'UKI Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://stripe.com/jobs/search?gh_jid=6669460', notes: 'UK/Ireland market' },
+    { company: 'Stripe', role: 'Account Executive, Mid-Market', location: 'Dublin/London', yearsExp: '0-3', link: 'https://stripe.com/jobs/search?gh_jid=7483552', notes: 'Mid-market AE' },
+    // HUBSPOT - BDR roles
+    { company: 'HubSpot', role: 'BDR Benelux Market (English-speaking)', location: 'Dublin', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/5220991?gh_jid=5220991', notes: 'English only - great fit!' },
+    { company: 'HubSpot', role: 'BDR Benelux Market (English-speaking)', location: 'Remote - Ireland', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/6294339?gh_jid=6294339', notes: 'Remote option' },
+    { company: 'HubSpot', role: 'Business Development Representative - UKI', location: 'Dublin (Flex)', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/4930719?gh_jid=4930719', notes: 'Flexible work' },
+    { company: 'HubSpot', role: 'Business Development Representative - UKI', location: 'Dublin', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/4930717?gh_jid=4930717', notes: 'Office-based' },
+    { company: 'HubSpot', role: 'Corporate Business Development Representative', location: 'Dublin (Flex)', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/7182430?gh_jid=7182430', notes: 'Corporate BDR' },
+    // CLOUDFLARE - Entry-level roles
+    { company: 'Cloudflare', role: 'Territory Account Executive', location: 'Hybrid', yearsExp: '0-3', link: 'https://boards.greenhouse.io/cloudflare/jobs/6541183?gh_jid=6541183', notes: 'Entry-level AE' },
+    { company: 'Cloudflare', role: 'Commercial Account Executive', location: 'Hybrid', yearsExp: '0-3', link: 'https://boards.greenhouse.io/cloudflare/jobs/7287620?gh_jid=7287620', notes: 'Commercial sales' },
+    { company: 'Cloudflare', role: 'Customer Success Manager', location: 'Hybrid', yearsExp: '0-3', link: 'https://boards.greenhouse.io/cloudflare/jobs/7547626?gh_jid=7547626', notes: 'Customer success' },
+    // VANTA - Dublin BDR
+    { company: 'Vanta', role: 'Business Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/business-development-representative-at-vanta-4328541259', notes: 'Security/compliance startup' },
+    { company: 'Vanta', role: 'Account Executive, Startups - EMEA', location: 'Dublin', yearsExp: '0-3', link: 'https://ie.linkedin.com/jobs/view/account-executive-startups-emea-at-vanta-4191617782', notes: 'Startup AE' },
+    // CLICKUP - Dublin SDR
+    { company: 'ClickUp', role: 'Sales Development Representative (EMEA)', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-emea-at-clickup-4367273347', notes: 'Productivity SaaS' },
+    // CLIO - Dublin SDR
+    { company: 'Clio', role: 'Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-at-clio-4331202491', notes: 'Legal tech' },
+    // DATADOG - Dublin
+    { company: 'Datadog', role: 'Commercial Account Executive (Iberia)', location: 'Dublin', yearsExp: '0-3', link: 'https://ie.linkedin.com/jobs/view/commercial-account-executive-iberia-at-datadog-4345262966', notes: 'Iberia market - Spanish!' },
+    // SQUARE - London
+    { company: 'Square', role: 'Business Development Associate', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/business-development-associate-at-square-4356711758', notes: 'Fintech - Jack Dorsey' },
+    // CISCO - London SDR
+    { company: 'Cisco', role: 'Sales Development Representative – EMEA', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/sales-development-representative-emea-field-team-london-at-cisco-4339257230', notes: 'Enterprise tech' },
+    // NEW RELIC - Dublin BDR
+    { company: 'New Relic', role: 'Business Development Representative (Outbound)', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/business-development-representative-outbound-at-new-relic-4335205010', notes: 'Observability platform' },
+    // QUANTCAST - Dublin SDR
+    { company: 'Quantcast', role: 'Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-at-quantcast-4324552412', notes: 'AdTech' },
+    // ZOOMINFO - London SDR
+    { company: 'ZoomInfo', role: 'Sales Development Representative', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/sales-development-representative-at-zoominfo-4356202585', notes: 'Sales intelligence' },
+    // LEARNUPON - Dublin SDR
+    { company: 'LearnUpon', role: 'Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-at-learnupon-4367269985', notes: 'Irish LMS company' },
+    // FASTSPRING - Dublin SDR
+    { company: 'FastSpring', role: 'Sales Development Representative - EMEA', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-emea-at-fastspring-4271541026', notes: 'E-commerce platform' },
+    // THOMSON REUTERS - London
+    { company: 'Thomson Reuters', role: 'Sales Development Representative', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/sales-development-representative-at-thomson-reuters-4367231561', notes: 'Media/data giant' },
+    // WEB SUMMIT - Dublin
+    { company: 'Web Summit', role: 'Growth Coordinator', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/growth-coordinator-at-web-summit-4366782800', notes: 'Tech conference' },
+    // KEYENCE - Dublin Graduate
+    { company: 'KEYENCE', role: 'Business Development Graduate - Summer 2026', location: 'Dublin', yearsExp: '0-1', link: 'https://ie.linkedin.com/jobs/view/business-development-graduate-summer-2026-at-keyence-corporation-4330584531', notes: 'Japanese tech - high pay' }
+];
+
+// Track selected jobs
+let scrapedJobsSelection = new Set();
+
+// Open scraped jobs modal
 function addScrapedJobs() {
     if (!db) { alert('Not connected to database.'); return; }
     
-    // VERIFIED ENTRY-LEVEL JOBS - Deep filtered from descriptions (0-3 years exp, English/Spanish/Portuguese only)
-    const scrapedJobs = [
-        // STRIPE - SDR roles
-        { company: 'Stripe', role: 'Sales Development Representative, Spanish', location: 'Dublin', yearsExp: '0-2', link: 'https://stripe.com/jobs/search?gh_jid=7385839', status: 'Not Started', notes: 'Spanish market - your language!' },
-        { company: 'Stripe', role: 'UKI Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://stripe.com/jobs/search?gh_jid=6669460', status: 'Not Started', notes: 'UK/Ireland market' },
-        { company: 'Stripe', role: 'Account Executive, Mid-Market - Existing Business', location: 'Dublin/London', yearsExp: '0-3', link: 'https://stripe.com/jobs/search?gh_jid=7483552', status: 'Not Started', notes: 'Mid-market AE' },
-        
-        // HUBSPOT - BDR roles
-        { company: 'HubSpot', role: 'BDR Benelux Market (English-speaking)', location: 'Dublin', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/5220991?gh_jid=5220991', status: 'Not Started', notes: 'English only - great fit!' },
-        { company: 'HubSpot', role: 'BDR Benelux Market (English-speaking)', location: 'Remote - Ireland', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/6294339?gh_jid=6294339', status: 'Not Started', notes: 'Remote option' },
-        { company: 'HubSpot', role: 'Business Development Representative - UKI', location: 'Dublin (Flex)', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/4930719?gh_jid=4930719', status: 'Not Started', notes: 'Flexible work' },
-        { company: 'HubSpot', role: 'Business Development Representative - UKI', location: 'Dublin', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/4930717?gh_jid=4930717', status: 'Not Started', notes: 'Office-based' },
-        { company: 'HubSpot', role: 'Corporate Business Development Representative', location: 'Dublin (Flex)', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/7182430?gh_jid=7182430', status: 'Not Started', notes: 'Corporate BDR' },
-        
-        // CLOUDFLARE - Entry-level roles
-        { company: 'Cloudflare', role: 'Territory Account Executive', location: 'Hybrid', yearsExp: '0-3', link: 'https://boards.greenhouse.io/cloudflare/jobs/6541183?gh_jid=6541183', status: 'Not Started', notes: 'Entry-level AE' },
-        { company: 'Cloudflare', role: 'Commercial Account Executive', location: 'Hybrid', yearsExp: '0-3', link: 'https://boards.greenhouse.io/cloudflare/jobs/7287620?gh_jid=7287620', status: 'Not Started', notes: 'Commercial sales' },
-        { company: 'Cloudflare', role: 'Customer Success Manager', location: 'Hybrid', yearsExp: '0-3', link: 'https://boards.greenhouse.io/cloudflare/jobs/7547626?gh_jid=7547626', status: 'Not Started', notes: 'Customer success' },
-        
-        // VANTA - Dublin BDR
-        { company: 'Vanta', role: 'Business Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/business-development-representative-at-vanta-4328541259', status: 'Not Started', notes: 'Security/compliance startup' },
-        { company: 'Vanta', role: 'Account Executive, Startups - EMEA', location: 'Dublin', yearsExp: '0-3', link: 'https://ie.linkedin.com/jobs/view/account-executive-startups-emea-at-vanta-4191617782', status: 'Not Started', notes: 'Startup AE' },
-        
-        // CLICKUP - Dublin SDR
-        { company: 'ClickUp', role: 'Sales Development Representative (EMEA)', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-emea-at-clickup-4367273347', status: 'Not Started', notes: 'Productivity SaaS' },
-        
-        // CLIO - Dublin SDR
-        { company: 'Clio', role: 'Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-at-clio-4331202491', status: 'Not Started', notes: 'Legal tech' },
-        
-        // DATADOG - Dublin
-        { company: 'Datadog', role: 'Commercial Account Executive (Iberia)', location: 'Dublin', yearsExp: '0-3', link: 'https://ie.linkedin.com/jobs/view/commercial-account-executive-iberia-at-datadog-4345262966', status: 'Not Started', notes: 'Iberia market - Spanish!' },
-        
-        // SQUARE - London
-        { company: 'Square', role: 'Business Development Associate', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/business-development-associate-at-square-4356711758', status: 'Not Started', notes: 'Fintech - Jack Dorsey' },
-        
-        // CISCO - London SDR
-        { company: 'Cisco', role: 'Sales Development Representative – EMEA Field Team', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/sales-development-representative-emea-field-team-london-at-cisco-4339257230', status: 'Not Started', notes: 'Enterprise tech' },
-        
-        // NEW RELIC - Dublin BDR
-        { company: 'New Relic', role: 'Business Development Representative (Outbound)', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/business-development-representative-outbound-at-new-relic-4335205010', status: 'Not Started', notes: 'Observability platform' },
-        
-        // QUANTCAST - Dublin SDR
-        { company: 'Quantcast', role: 'Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-at-quantcast-4324552412', status: 'Not Started', notes: 'AdTech' },
-        
-        // ZOOMINFO - London SDR
-        { company: 'ZoomInfo', role: 'Sales Development Representative', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/sales-development-representative-at-zoominfo-4356202585', status: 'Not Started', notes: 'Sales intelligence' },
-        
-        // LEARNUPON - Dublin SDR
-        { company: 'LearnUpon', role: 'Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-at-learnupon-4367269985', status: 'Not Started', notes: 'Irish LMS company' },
-        
-        // FASTSPRING - Dublin SDR
-        { company: 'FastSpring', role: 'Sales Development Representative - EMEA', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-emea-at-fastspring-4271541026', status: 'Not Started', notes: 'E-commerce platform' },
-        
-        // THOMSON REUTERS - London
-        { company: 'Thomson Reuters', role: 'Sales Development Representative', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/sales-development-representative-at-thomson-reuters-4367231561', status: 'Not Started', notes: 'Media/data giant' },
-        
-        // WEB SUMMIT - Dublin
-        { company: 'Web Summit', role: 'Growth Coordinator', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/growth-coordinator-at-web-summit-4366782800', status: 'Not Started', notes: 'Tech conference' },
-        
-        // KEYENCE - Dublin Graduate
-        { company: 'KEYENCE', role: 'Business Development Graduate - Summer 2026', location: 'Dublin', yearsExp: '0-1', link: 'https://ie.linkedin.com/jobs/view/business-development-graduate-summer-2026-at-keyence-corporation-4330584531', status: 'Not Started', notes: 'Japanese tech - high pay' }
-    ];
+    // Reset selection
+    scrapedJobsSelection = new Set(SCRAPED_JOBS_DATA.map((_, i) => i)); // All selected by default
+    renderScrapedJobsTable();
+    document.getElementById('scrapedJobsModal').classList.add('show');
+}
+
+// Close scraped jobs modal
+function closeScrapedJobsModal() {
+    document.getElementById('scrapedJobsModal').classList.remove('show');
+}
+
+// Render scraped jobs table
+function renderScrapedJobsTable() {
+    const tbody = document.getElementById('scrapedJobsTableBody');
     
-    if (!confirm(`Add ${scrapedJobs.length} VERIFIED entry-level jobs?\n\n✅ Deep filtered from job descriptions\n✅ 0-3 years experience only\n✅ English/Spanish/Portuguese only\n\nCompanies: Stripe, HubSpot, Cloudflare, Vanta, ClickUp, Datadog, Square, Cisco, ZoomInfo, and more!`)) return;
+    tbody.innerHTML = SCRAPED_JOBS_DATA.map((job, idx) => {
+        const isSelected = scrapedJobsSelection.has(idx);
+        return `
+            <tr class="${isSelected ? 'selected' : 'removed'}" data-idx="${idx}">
+                <td><input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleScrapedJob(${idx})"></td>
+                <td class="company-cell">${escapeHtml(job.company)}</td>
+                <td class="role-cell"><a href="${job.link}" target="_blank" title="${escapeHtml(job.notes || '')}">${escapeHtml(job.role)}</a></td>
+                <td>${escapeHtml(job.location)}</td>
+                <td>${job.yearsExp}</td>
+                <td>
+                    ${isSelected 
+                        ? `<button class="action-btn remove-btn" onclick="removeScrapedJob(${idx})">✗ Remove</button>`
+                        : `<button class="action-btn add-btn" onclick="addSingleScrapedJob(${idx})">✓ Add</button>`
+                    }
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    updateScrapedJobsCount();
+}
+
+// Toggle single job selection
+function toggleScrapedJob(idx) {
+    if (scrapedJobsSelection.has(idx)) {
+        scrapedJobsSelection.delete(idx);
+    } else {
+        scrapedJobsSelection.add(idx);
+    }
+    renderScrapedJobsTable();
+}
+
+// Remove single job from selection
+function removeScrapedJob(idx) {
+    scrapedJobsSelection.delete(idx);
+    renderScrapedJobsTable();
+}
+
+// Add single job back to selection
+function addSingleScrapedJob(idx) {
+    scrapedJobsSelection.add(idx);
+    renderScrapedJobsTable();
+}
+
+// Select all jobs
+function selectAllScrapedJobs() {
+    scrapedJobsSelection = new Set(SCRAPED_JOBS_DATA.map((_, i) => i));
+    renderScrapedJobsTable();
+}
+
+// Remove all jobs from selection
+function removeAllScrapedJobs() {
+    scrapedJobsSelection.clear();
+    renderScrapedJobsTable();
+}
+
+// Update count display
+function updateScrapedJobsCount() {
+    document.getElementById('scrapedJobsCount').textContent = `${scrapedJobsSelection.size} of ${SCRAPED_JOBS_DATA.length} jobs selected`;
+}
+
+// Add all selected jobs to database
+function addAllScrapedJobs() {
+    if (!db) { alert('Not connected to database.'); return; }
+    if (scrapedJobsSelection.size === 0) { alert('No jobs selected!'); return; }
     
     showSaving();
     
@@ -953,14 +1125,23 @@ function addScrapedJobs() {
         let skipped = 0;
         const promises = [];
         
-        scrapedJobs.forEach(job => {
+        // Only add selected jobs
+        scrapedJobsSelection.forEach(idx => {
+            const job = SCRAPED_JOBS_DATA[idx];
             const sig = (job.company + '|' + job.role + '|' + job.link).toLowerCase();
+            
             if (existingSigs.has(sig)) {
                 skipped++;
             } else {
                 added++;
                 promises.push(db.ref('positions').push({
-                    ...job,
+                    company: job.company,
+                    role: job.role,
+                    location: job.location,
+                    yearsExp: job.yearsExp,
+                    link: job.link,
+                    notes: job.notes || '',
+                    status: 'Not Started',
                     priority: false,
                     timestamp: Date.now()
                 }));
@@ -969,6 +1150,7 @@ function addScrapedJobs() {
         
         Promise.all(promises).then(() => {
             showSaved();
+            closeScrapedJobsModal();
             alert(`✅ Added ${added} new jobs! (Skipped ${skipped} duplicates)`);
             logHistory(`added ${added} verified entry-level jobs from Stripe, HubSpot, Cloudflare, Vanta, ClickUp, Datadog, Square, Cisco, and more`);
         });
