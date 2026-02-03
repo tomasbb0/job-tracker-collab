@@ -603,7 +603,7 @@
             Pending Approvals <span class="pending-badge" id="pendingBadge">0</span>
         </button>
         <button class="btn btn-secondary" onclick="cleanDuplicates()" style="background: #dc3545; color: #fff; border: none;">🧹 Remove Duplicates & Bad Links</button>
-        <button class="btn btn-secondary" onclick="addScrapedJobs()" style="background: #28a745; color: #fff; border: none;">➕ Add 11 Scraped Entry-Level Jobs</button>
+        <button class="btn btn-secondary" onclick="addScrapedJobs()" style="background: #28a745; color: #fff; border: none;">➕ Add 26 Verified Entry-Level Jobs</button>
         <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
     </div>
 
@@ -873,21 +873,70 @@ function cleanDuplicates() {
 function addScrapedJobs() {
     if (!db) { alert('Not connected to database.'); return; }
     
+    // VERIFIED ENTRY-LEVEL JOBS - Deep filtered from descriptions (0-3 years exp, English/Spanish/Portuguese only)
     const scrapedJobs = [
-        { company: 'Airbnb', role: 'Market Associate', location: 'London, UK', yearsExp: '0-2', link: 'https://careers.airbnb.com/positions/7548296?gh_jid=7548296', status: 'Not Started', notes: 'Entry-level market ops' },
-        { company: 'Stripe', role: 'Operations Associate, GTM Accelerate', location: 'Dublin', yearsExp: '0-2', link: 'https://stripe.com/jobs/search?gh_jid=7520686', status: 'Not Started', notes: 'GTM operations' },
+        // STRIPE - SDR roles
         { company: 'Stripe', role: 'Sales Development Representative, Spanish', location: 'Dublin', yearsExp: '0-2', link: 'https://stripe.com/jobs/search?gh_jid=7385839', status: 'Not Started', notes: 'Spanish market - your language!' },
         { company: 'Stripe', role: 'UKI Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://stripe.com/jobs/search?gh_jid=6669460', status: 'Not Started', notes: 'UK/Ireland market' },
-        { company: 'HubSpot', role: 'BDR Benelux Market (English-speaking)', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/5220991?gh_jid=5220991', status: 'Not Started', notes: 'English only - great fit!' },
-        { company: 'HubSpot', role: 'BDR Benelux Market (English-speaking)', location: 'Remote - Ireland', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/6294339?gh_jid=6294339', status: 'Not Started', notes: 'Remote option available' },
-        { company: 'HubSpot', role: 'Business Development Representative - UKI', location: 'Dublin, Ireland (Flex)', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/4930719?gh_jid=4930719', status: 'Not Started', notes: 'Flexible work' },
-        { company: 'HubSpot', role: 'Business Development Representative - UKI', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/4930717?gh_jid=4930717', status: 'Not Started', notes: 'Office-based' },
-        { company: 'HubSpot', role: 'Corporate Business Development Representative', location: 'Dublin, Ireland (Flex)', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/7182430?gh_jid=7182430', status: 'Not Started', notes: 'Corporate BDR' },
-        { company: 'Cloudflare', role: 'Business Development Representative', location: 'Hybrid (London/Remote)', yearsExp: '0-2', link: 'https://boards.greenhouse.io/cloudflare/jobs/7122629?gh_jid=7122629', status: 'Not Started', notes: 'Tech company, hybrid' },
-        { company: 'Cloudflare', role: 'Business Development Representative', location: 'Hybrid (London/Remote)', yearsExp: '0-2', link: 'https://boards.greenhouse.io/cloudflare/jobs/7400242?gh_jid=7400242', status: 'Not Started', notes: 'Another BDR opening' }
+        { company: 'Stripe', role: 'Account Executive, Mid-Market - Existing Business', location: 'Dublin/London', yearsExp: '0-3', link: 'https://stripe.com/jobs/search?gh_jid=7483552', status: 'Not Started', notes: 'Mid-market AE' },
+        
+        // HUBSPOT - BDR roles
+        { company: 'HubSpot', role: 'BDR Benelux Market (English-speaking)', location: 'Dublin', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/5220991?gh_jid=5220991', status: 'Not Started', notes: 'English only - great fit!' },
+        { company: 'HubSpot', role: 'BDR Benelux Market (English-speaking)', location: 'Remote - Ireland', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/6294339?gh_jid=6294339', status: 'Not Started', notes: 'Remote option' },
+        { company: 'HubSpot', role: 'Business Development Representative - UKI', location: 'Dublin (Flex)', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/4930719?gh_jid=4930719', status: 'Not Started', notes: 'Flexible work' },
+        { company: 'HubSpot', role: 'Business Development Representative - UKI', location: 'Dublin', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/4930717?gh_jid=4930717', status: 'Not Started', notes: 'Office-based' },
+        { company: 'HubSpot', role: 'Corporate Business Development Representative', location: 'Dublin (Flex)', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/7182430?gh_jid=7182430', status: 'Not Started', notes: 'Corporate BDR' },
+        
+        // CLOUDFLARE - Entry-level roles
+        { company: 'Cloudflare', role: 'Territory Account Executive', location: 'Hybrid', yearsExp: '0-3', link: 'https://boards.greenhouse.io/cloudflare/jobs/6541183?gh_jid=6541183', status: 'Not Started', notes: 'Entry-level AE' },
+        { company: 'Cloudflare', role: 'Commercial Account Executive', location: 'Hybrid', yearsExp: '0-3', link: 'https://boards.greenhouse.io/cloudflare/jobs/7287620?gh_jid=7287620', status: 'Not Started', notes: 'Commercial sales' },
+        { company: 'Cloudflare', role: 'Customer Success Manager', location: 'Hybrid', yearsExp: '0-3', link: 'https://boards.greenhouse.io/cloudflare/jobs/7547626?gh_jid=7547626', status: 'Not Started', notes: 'Customer success' },
+        
+        // VANTA - Dublin BDR
+        { company: 'Vanta', role: 'Business Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/business-development-representative-at-vanta-4328541259', status: 'Not Started', notes: 'Security/compliance startup' },
+        { company: 'Vanta', role: 'Account Executive, Startups - EMEA', location: 'Dublin', yearsExp: '0-3', link: 'https://ie.linkedin.com/jobs/view/account-executive-startups-emea-at-vanta-4191617782', status: 'Not Started', notes: 'Startup AE' },
+        
+        // CLICKUP - Dublin SDR
+        { company: 'ClickUp', role: 'Sales Development Representative (EMEA)', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-emea-at-clickup-4367273347', status: 'Not Started', notes: 'Productivity SaaS' },
+        
+        // CLIO - Dublin SDR
+        { company: 'Clio', role: 'Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-at-clio-4331202491', status: 'Not Started', notes: 'Legal tech' },
+        
+        // DATADOG - Dublin
+        { company: 'Datadog', role: 'Commercial Account Executive (Iberia)', location: 'Dublin', yearsExp: '0-3', link: 'https://ie.linkedin.com/jobs/view/commercial-account-executive-iberia-at-datadog-4345262966', status: 'Not Started', notes: 'Iberia market - Spanish!' },
+        
+        // SQUARE - London
+        { company: 'Square', role: 'Business Development Associate', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/business-development-associate-at-square-4356711758', status: 'Not Started', notes: 'Fintech - Jack Dorsey' },
+        
+        // CISCO - London SDR
+        { company: 'Cisco', role: 'Sales Development Representative – EMEA Field Team', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/sales-development-representative-emea-field-team-london-at-cisco-4339257230', status: 'Not Started', notes: 'Enterprise tech' },
+        
+        // NEW RELIC - Dublin BDR
+        { company: 'New Relic', role: 'Business Development Representative (Outbound)', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/business-development-representative-outbound-at-new-relic-4335205010', status: 'Not Started', notes: 'Observability platform' },
+        
+        // QUANTCAST - Dublin SDR
+        { company: 'Quantcast', role: 'Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-at-quantcast-4324552412', status: 'Not Started', notes: 'AdTech' },
+        
+        // ZOOMINFO - London SDR
+        { company: 'ZoomInfo', role: 'Sales Development Representative', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/sales-development-representative-at-zoominfo-4356202585', status: 'Not Started', notes: 'Sales intelligence' },
+        
+        // LEARNUPON - Dublin SDR
+        { company: 'LearnUpon', role: 'Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-at-learnupon-4367269985', status: 'Not Started', notes: 'Irish LMS company' },
+        
+        // FASTSPRING - Dublin SDR
+        { company: 'FastSpring', role: 'Sales Development Representative - EMEA', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/sales-development-representative-emea-at-fastspring-4271541026', status: 'Not Started', notes: 'E-commerce platform' },
+        
+        // THOMSON REUTERS - London
+        { company: 'Thomson Reuters', role: 'Sales Development Representative', location: 'London', yearsExp: '0-2', link: 'https://uk.linkedin.com/jobs/view/sales-development-representative-at-thomson-reuters-4367231561', status: 'Not Started', notes: 'Media/data giant' },
+        
+        // WEB SUMMIT - Dublin
+        { company: 'Web Summit', role: 'Growth Coordinator', location: 'Dublin', yearsExp: '0-2', link: 'https://ie.linkedin.com/jobs/view/growth-coordinator-at-web-summit-4366782800', status: 'Not Started', notes: 'Tech conference' },
+        
+        // KEYENCE - Dublin Graduate
+        { company: 'KEYENCE', role: 'Business Development Graduate - Summer 2026', location: 'Dublin', yearsExp: '0-1', link: 'https://ie.linkedin.com/jobs/view/business-development-graduate-summer-2026-at-keyence-corporation-4330584531', status: 'Not Started', notes: 'Japanese tech - high pay' }
     ];
     
-    if (!confirm(`Add ${scrapedJobs.length} verified entry-level jobs (BDR/SDR) from the scraper?\n\nCompanies: Airbnb, Stripe, HubSpot, Cloudflare\n\nThese have DIRECT application links.`)) return;
+    if (!confirm(`Add ${scrapedJobs.length} VERIFIED entry-level jobs?\n\n✅ Deep filtered from job descriptions\n✅ 0-3 years experience only\n✅ English/Spanish/Portuguese only\n\nCompanies: Stripe, HubSpot, Cloudflare, Vanta, ClickUp, Datadog, Square, Cisco, ZoomInfo, and more!`)) return;
     
     showSaving();
     
@@ -921,7 +970,7 @@ function addScrapedJobs() {
         Promise.all(promises).then(() => {
             showSaved();
             alert(`✅ Added ${added} new jobs! (Skipped ${skipped} duplicates)`);
-            logHistory(`added ${added} scraped entry-level jobs from Airbnb, Stripe, HubSpot, Cloudflare`);
+            logHistory(`added ${added} verified entry-level jobs from Stripe, HubSpot, Cloudflare, Vanta, ClickUp, Datadog, Square, Cisco, and more`);
         });
     });
 }

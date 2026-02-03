@@ -1,7 +1,7 @@
 /**
  * Greenhouse Job Board API Scraper
  * Fetches jobs from companies using Greenhouse ATS
- * API is free and public - no authentication needed for GET requests
+ * NOW WITH DESCRIPTION-BASED EXPERIENCE FILTERING
  */
 
 import { createRequire } from 'module'; const require = createRequire(import.meta.url); const companies = require('./companies.json');
@@ -9,23 +9,107 @@ import { createRequire } from 'module'; const require = createRequire(import.met
 const GREENHOUSE_API_BASE = 'https://boards-api.greenhouse.io/v1/boards';
 
 /**
- * Fetch all jobs from a Greenhouse board
- * @param {string} boardToken - The company's Greenhouse board token
- * @returns {Promise<Array>} - Array of job objects
+ * Extract years of experience required from job description
+ * @param {string} description - Job description text
+ * @returns {number|null} - Years required or null if not found/entry-level
+ */
+function extractYearsRequired(description) {
+    if (!description) return null;
+    
+    const text = description.toLowerCase();
+    
+    // Patterns to match experience requirements
+    const patterns = [
+        /(\d+)\+?\s*(?:years?|yrs?)(?:\s+of)?\s+(?:experience|exp)/gi,
+        /(?:experience|exp)\s*(?:of)?\s*(\d+)\+?\s*(?:years?|yrs?)/gi,
+        /(\d+)\s*-\s*(\d+)\s*(?:years?|yrs?)/gi,
+        /minimum\s+(?:of\s+)?(\d+)\s*(?:years?|yrs?)/gi,
+        /at\s+least\s+(\d+)\s*(?:years?|yrs?)/gi,
+        /(\d+)\+?\s*(?:years?|yrs?)\s+(?:in|of|working)/gi,
+    ];
+    
+    let maxYears = 0;
+    let foundMatch = false;
+    
+    for (const pattern of patterns) {
+        let match;
+        while ((match = pattern.exec(text)) !== null) {
+            foundMatch = true;
+            // For ranges like "3-5 years", take the minimum
+            const years = parseInt(match[1]) || parseInt(match[2]) || 0;
+            if (years > maxYears) {
+                maxYears = years;
+            }
+        }
+    }
+    
+    // Check for "senior" or similar indicators
+    if (text.includes('senior') || text.includes('lead') || text.includes('principal') || text.includes('staff')) {
+        if (maxYears < 5) maxYears = 5; // Assume senior = 5+ years
+    }
+    
+    return foundMatch ? maxYears : null;
+}
+
+/**
+ * Check if job requires languages other than English/Spanish/Portuguese
+ * @param {string} description - Job description text
+ * @returns {boolean} - True if requires other languages
+ */
+function requiresOtherLanguages(description) {
+    if (!description) return false;
+    
+    const text = description.toLowerCase();
+    
+    // Languages that disqualify (not English/Spanish/Portuguese)
+    const otherLanguages = [
+        'german', 'deutsch', 'french', 'français', 'italian', 'italiano',
+        'dutch', 'nederlands', 'polish', 'polski', 'czech', 'hungarian',
+        'swedish', 'norwegian', 'danish', 'finnish', 'russian', 'russian',
+        'japanese', '日本語', 'korean', '한국어', 'mandarin', 'cantonese',
+        'chinese', '中文', 'arabic', 'hebrew', 'turkish', 'thai', 'vietnamese',
+        'indonesian', 'bahasa', 'hindi'
+    ];
+    
+    // Phrases indicating language requirement
+    const requirementPhrases = [
+        'fluent in', 'native speaker', 'fluency in', 'proficient in',
+        'must speak', 'required language', 'language requirement',
+        'speaking', 'written and spoken'
+    ];
+    
+    for (const lang of otherLanguages) {
+        for (const phrase of requirementPhrases) {
+            if (text.includes(`${phrase} ${lang}`) || text.includes(`${lang} ${phrase}`)) {
+                return true;
+            }
+        }
+        // Also check if language appears near "required" or "must"
+        const langIndex = text.indexOf(lang);
+        if (langIndex !== -1) {
+            const context = text.substring(Math.max(0, langIndex - 50), langIndex + 50);
+            if (context.includes('required') || context.includes('must') || context.includes('essential') || context.includes('fluent')) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Fetch all jobs from a Greenhouse board with full content
  */
 async function fetchGreenhouseJobs(boardToken) {
     const url = `${GREENHOUSE_API_BASE}/${boardToken}/jobs?content=true`;
     
     try {
         const response = await fetch(url);
-        
         if (!response.ok) {
             console.error(`Failed to fetch jobs from ${boardToken}: ${response.status}`);
             return [];
         }
-        
-        const data = await response.json();
-        return data.jobs || [];
+        return (await response.json()).jobs || [];
     } catch (error) {
         console.error(`Error fetching jobs from ${boardToken}:`, error.message);
         return [];
@@ -33,88 +117,75 @@ async function fetchGreenhouseJobs(boardToken) {
 }
 
 /**
- * Fetch detailed job information including full description
- * @param {string} boardToken - The company's Greenhouse board token
- * @param {number} jobId - The job ID
- * @returns {Promise<Object|null>} - Detailed job object or null
- */
-async function fetchJobDetails(boardToken, jobId) {
-    const url = `${GREENHOUSE_API_BASE}/${boardToken}/jobs/${jobId}`;
-    
-    try {
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            return null;
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error(`Error fetching job details for ${jobId}:`, error.message);
-        return null;
-    }
-}
-
-/**
- * Check if a job location matches target locations
- * @param {Object} job - Job object with location
- * @param {Array<string>} targetLocations - Array of target location strings
- * @returns {boolean}
+ * Check if job location matches target locations
  */
 function matchesLocation(job, targetLocations) {
     const jobLocation = job.location?.name?.toLowerCase() || '';
     
     return targetLocations.some(loc => 
         jobLocation.includes(loc.toLowerCase()) ||
-        // Also check for remote roles in these regions
         (jobLocation.includes('remote') && 
-         (jobLocation.includes('europe') || 
-          jobLocation.includes('emea') ||
-          jobLocation.includes('eu')))
+         (jobLocation.includes('europe') || jobLocation.includes('emea') || jobLocation.includes('eu'))) ||
+        jobLocation.includes('hybrid') ||
+        jobLocation.includes('distributed')
     );
 }
 
 /**
- * Quick pre-filter to exclude obvious non-matches before AI analysis
- * @param {Object} job - Job object
- * @param {Object} criteria - Filter criteria from companies.json
- * @returns {boolean}
+ * Strip HTML tags from content
+ */
+function stripHtml(html) {
+    if (!html) return '';
+    return html
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+/**
+ * Quick pre-filter by title (exclude obvious tech/intern)
  */
 function quickPreFilter(job, criteria) {
     const title = job.title?.toLowerCase() || '';
+    return !criteria.excludeRoleKeywords.some(keyword => title.includes(keyword.toLowerCase()));
+}
+
+/**
+ * DEEP filter by description - check years of experience and language requirements
+ */
+function deepFilter(job, maxYears = 3) {
+    const description = stripHtml(job.content);
+    const title = job.title?.toLowerCase() || '';
     
-    // Exclude if title contains excluded keywords (obvious tech/intern roles)
-    const hasExcludedKeyword = criteria.excludeRoleKeywords.some(keyword => 
-        title.includes(keyword.toLowerCase())
-    );
+    // Extract years required from description
+    const yearsRequired = extractYearsRequired(description);
     
-    if (hasExcludedKeyword) {
-        return false;
+    // If years found and > maxYears, exclude
+    if (yearsRequired !== null && yearsRequired > maxYears) {
+        return { pass: false, reason: `Requires ${yearsRequired}+ years experience`, yearsRequired };
     }
     
-    return true;
+    // Check for language requirements
+    if (requiresOtherLanguages(description)) {
+        return { pass: false, reason: 'Requires non-English/Spanish/Portuguese language', yearsRequired };
+    }
+    
+    // Check title for senior indicators
+    if (title.includes('senior') || title.includes('lead') || title.includes('principal') || title.includes('director') || title.includes('head of') || title.includes('vp ') || title.includes('vice president')) {
+        return { pass: false, reason: 'Senior-level title', yearsRequired: yearsRequired || 5 };
+    }
+    
+    return { pass: true, reason: 'Meets criteria', yearsRequired: yearsRequired || 0 };
 }
 
 /**
  * Transform Greenhouse job to standardized format
- * @param {Object} job - Greenhouse job object
- * @param {string} companyName - Company name
- * @returns {Object} - Standardized job object
  */
-function transformJob(job, companyName) {
-    // Extract plain text from HTML content
-    const stripHtml = (html) => {
-        if (!html) return '';
-        return html
-            .replace(/<[^>]*>/g, ' ')
-            .replace(/&nbsp;/g, ' ')
-            .replace(/&amp;/g, '&')
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/\s+/g, ' ')
-            .trim();
-    };
-    
+function transformJob(job, companyName, filterResult) {
     return {
         id: `greenhouse_${job.id}`,
         company: companyName,
@@ -122,19 +193,15 @@ function transformJob(job, companyName) {
         location: job.location?.name || 'Unknown',
         link: job.absolute_url,
         description: stripHtml(job.content),
+        yearsRequired: filterResult.yearsRequired,
         departments: job.departments?.map(d => d.name) || [],
         updatedAt: job.updated_at,
-        source: 'greenhouse',
-        rawData: {
-            greenhouseId: job.id,
-            metadata: job.metadata || []
-        }
+        source: 'greenhouse'
     };
 }
 
 /**
- * Scrape all jobs from all Greenhouse companies
- * @returns {Promise<Array>} - Array of standardized job objects
+ * Scrape all jobs from all Greenhouse companies WITH DESCRIPTION FILTERING
  */
 export async function scrapeGreenhouseJobs() {
     const allJobs = [];
@@ -150,29 +217,40 @@ export async function scrapeGreenhouseJobs() {
         console.log(`   Found ${jobs.length} total jobs`);
         
         // Filter by location
-        const locationFiltered = jobs.filter(job => 
-            matchesLocation(job, company.locations)
-        );
+        const locationFiltered = jobs.filter(job => matchesLocation(job, company.locations));
         console.log(`   ${locationFiltered.length} jobs in target locations`);
         
-        // Quick pre-filter (exclude obvious tech/intern roles)
-        const preFiltered = locationFiltered.filter(job => 
-            quickPreFilter(job, criteria)
-        );
-        console.log(`   ${preFiltered.length} jobs after pre-filter (excluding obvious tech/intern)`);
+        // Quick pre-filter by title
+        const preFiltered = locationFiltered.filter(job => quickPreFilter(job, criteria));
+        console.log(`   ${preFiltered.length} jobs after title pre-filter`);
         
-        // Transform to standardized format
-        const transformedJobs = preFiltered.map(job => 
-            transformJob(job, company.name)
-        );
+        // DEEP filter by description (years + languages)
+        let deepFiltered = 0;
+        let rejectedReasons = {};
         
-        allJobs.push(...transformedJobs);
+        for (const job of preFiltered) {
+            const filterResult = deepFilter(job, 3); // Max 3 years experience
+            
+            if (filterResult.pass) {
+                allJobs.push(transformJob(job, company.name, filterResult));
+                deepFiltered++;
+            } else {
+                rejectedReasons[filterResult.reason] = (rejectedReasons[filterResult.reason] || 0) + 1;
+            }
+        }
         
-        // Small delay to be respectful to the API
-        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log(`   ✅ ${deepFiltered} jobs after DEEP description filter`);
+        if (Object.keys(rejectedReasons).length > 0) {
+            console.log(`   ❌ Rejected reasons:`);
+            for (const [reason, count] of Object.entries(rejectedReasons)) {
+                console.log(`      - ${reason}: ${count}`);
+            }
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 300));
     }
     
-    console.log(`\n✅ Greenhouse scraping complete: ${allJobs.length} candidate jobs`);
+    console.log(`\n✅ Greenhouse scraping complete: ${allJobs.length} VERIFIED entry-level jobs`);
     return allJobs;
 }
 
@@ -180,10 +258,10 @@ export async function scrapeGreenhouseJobs() {
 if (import.meta.url === `file://${process.argv[1]}`) {
     console.log('Running Greenhouse scraper directly...');
     const jobs = await scrapeGreenhouseJobs();
-    console.log('\nSample jobs:');
-    jobs.slice(0, 5).forEach(job => {
-        console.log(`- ${job.company}: ${job.role} (${job.location})`);
+    console.log('\nVerified entry-level jobs:');
+    jobs.slice(0, 10).forEach(job => {
+        console.log(`- ${job.company}: ${job.role} (${job.location}) [${job.yearsRequired || 0} yrs]`);
     });
 }
 
-export default { scrapeGreenhouseJobs, fetchGreenhouseJobs, fetchJobDetails };
+export default { scrapeGreenhouseJobs, fetchGreenhouseJobs, extractYearsRequired };
