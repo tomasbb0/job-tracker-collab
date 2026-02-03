@@ -1,0 +1,56 @@
+name: Daily Job Scraper
+
+on:
+  # Run daily at 8 AM UTC (9 AM Lisbon time)
+  schedule:
+    - cron: '0 8 * * *'
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      enable_browser:
+        description: 'Enable browser scraping (Tier 3 companies)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Puppeteer dependencies
+        if: ${{ github.event.inputs.enable_browser == 'true' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgbm-dev libnss3 libatk-bridge2.0-0 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2
+
+      - name: Run job scraper
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          ENABLE_BROWSER_SCRAPING: ${{ github.event.inputs.enable_browser || 'false' }}
+        run: npm run scrape
+
+      - name: Upload scrape logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrape-logs-${{ github.run_number }}
+          path: |
+            scraper/*.log
+          retention-days: 7

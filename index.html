@@ -335,6 +335,198 @@
         }
         .filter-sort-buttons button:hover { background: #f5f5f5; }
         .filter-sort-buttons button.active { background: #000; color: #fff; border-color: #000; }
+        
+        /* Pending Jobs Badge */
+        .pending-badge { 
+            background: #ff5722; 
+            color: #fff; 
+            padding: 4px 10px; 
+            border-radius: 100px; 
+            font-size: 11px; 
+            font-weight: 600; 
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Approval Modal */
+        .approval-modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.5); 
+            backdrop-filter: blur(4px); 
+            z-index: 3000; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        .approval-modal.show { display: flex; }
+        .approval-modal-content { 
+            background: #fff; 
+            padding: 32px; 
+            border-radius: 16px; 
+            max-width: 900px; 
+            width: 95%; 
+            max-height: 85vh; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2); 
+        }
+        .approval-modal-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+        .approval-modal-header h2 { margin: 0; font-size: 20px; }
+        .approval-modal-actions { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+        .approval-modal-body { 
+            overflow-y: auto; 
+            flex: 1;
+            min-height: 0;
+        }
+        .pending-job-card {
+            background: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+        .pending-job-card:hover { border-color: #ccc; }
+        .pending-job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .pending-job-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #000;
+        }
+        .pending-job-company {
+            color: #666;
+            font-size: 13px;
+        }
+        .pending-job-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        .pending-job-ai {
+            font-size: 11px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+        .pending-job-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-approve { background: #00c853; color: #fff; border: none; }
+        .btn-approve:hover { background: #00b248; }
+        .btn-reject { background: #fff; color: #d32f2f; border: 1px solid #d32f2f; }
+        .btn-reject:hover { background: #ffebee; }
+        .btn-approve-all { background: #00c853; color: #fff; border: none; }
+        .btn-reject-all { background: #d32f2f; color: #fff; border: none; }
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            line-height: 1;
+        }
+        .close-modal-btn:hover { color: #000; }
+        
+        /* Collapsible Referrals */
+        .referrals-section {
+            flex: 1;
+            min-width: min(320px, 100%);
+            background: #fafafa;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #f0f0f0;
+            height: fit-content;
+            overflow-x: auto;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .referrals-section.collapsed {
+            min-width: 50px;
+            width: 50px;
+            padding: 16px 8px;
+            overflow: hidden;
+        }
+        .referrals-section.collapsed h2,
+        .referrals-section.collapsed table {
+            display: none;
+        }
+        .referrals-section.collapsed .collapsed-label {
+            display: block;
+        }
+        .collapsed-label {
+            display: none;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-align: center;
+            padding-top: 20px;
+        }
+        .collapse-toggle {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .collapse-toggle:hover { background: #f0f0f0; border-color: #ccc; }
+        .collapse-toggle svg { width: 14px; height: 14px; transition: transform 0.3s; }
+        .referrals-section.collapsed .collapse-toggle { 
+            right: 50%; 
+            transform: translateX(50%); 
+            top: 8px;
+        }
+        .referrals-section.collapsed .collapse-toggle svg { transform: rotate(180deg); }
+        
+        /* Positions section expands when referrals collapsed */
+        .tables-container.referrals-collapsed .positions-section {
+            flex: 1;
+            max-width: 100%;
+        }
+        .tables-container.referrals-collapsed .referrals-section {
+            flex: 0 0 50px;
+        }
     </style>
 </head>
 <body>
@@ -354,6 +546,25 @@
     <div class="filter-modal-header">Filter Column</div>
     <div class="filter-modal-content"></div>
     <div class="filter-sort-buttons"></div>
+</div>
+
+<!-- Approval Modal -->
+<div class="approval-modal" id="approvalModal">
+    <div class="approval-modal-content">
+        <div class="approval-modal-header">
+            <h2>Pending Job Approvals</h2>
+            <button class="close-modal-btn" onclick="closeApprovalModal()">&times;</button>
+        </div>
+        <div class="approval-modal-actions">
+            <button class="btn btn-approve-all" onclick="approveAllPending()">Approve All</button>
+            <button class="btn btn-reject-all" onclick="rejectAllPending()">Reject All</button>
+            <span style="flex: 1;"></span>
+            <span id="pendingCount" style="font-size: 12px; color: #666; align-self: center;">0 jobs pending</span>
+        </div>
+        <div class="approval-modal-body" id="pendingJobsList">
+            <p style="text-align: center; color: #888; padding: 40px;">Loading pending jobs...</p>
+        </div>
+    </div>
 </div>
 
 <div class="connection-lost" id="connectionLost">
@@ -388,6 +599,9 @@
 
     <div class="toolbar">
         <button class="btn btn-primary" onclick="addPosition()">+ Add Position</button>
+        <button class="btn btn-secondary" onclick="openApprovalModal()" id="pendingBtn" style="display: none;">
+            Pending Approvals <span class="pending-badge" id="pendingBadge">0</span>
+        </button>
         <button class="btn btn-secondary" onclick="cleanDuplicates()" style="background: #dc3545; color: #fff; border: none;">🧹 Remove Duplicates & Bad Links</button>
         <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
     </div>
@@ -412,7 +626,11 @@
             </table>
         </div>
 
-        <div class="referrals-section">
+        <div class="referrals-section" id="referralsSection">
+            <button class="collapse-toggle" onclick="toggleReferrals()" title="Collapse/Expand">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <span class="collapsed-label">Referrals</span>
             <h2 style="font-size: 16px; margin-bottom: 10px;"><svg style="width:16px;height:16px;vertical-align:middle;margin-right:6px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>Company Referrals</h2>
             <table>
                 <thead>
@@ -1207,6 +1425,227 @@ function initResizableColumns() {
 
 // Initialize resizable columns after page loads
 setTimeout(initResizableColumns, 500);
+
+// ============================================
+// PENDING JOBS APPROVAL SYSTEM
+// ============================================
+let pendingJobs = {};
+
+function setupPendingJobsListener() {
+    if (!db) return;
+    
+    db.ref('pending_jobs').on('value', (snap) => {
+        pendingJobs = snap.val() || {};
+        const count = Object.keys(pendingJobs).length;
+        
+        debug('Pending jobs: ' + count);
+        
+        // Update badge and button visibility
+        const badge = document.getElementById('pendingBadge');
+        const btn = document.getElementById('pendingBtn');
+        const countSpan = document.getElementById('pendingCount');
+        
+        if (count > 0) {
+            badge.textContent = count;
+            btn.style.display = 'inline-flex';
+            if (countSpan) countSpan.textContent = `${count} job${count !== 1 ? 's' : ''} pending`;
+        } else {
+            btn.style.display = 'none';
+        }
+        
+        // Update modal content if open
+        if (document.getElementById('approvalModal').classList.contains('show')) {
+            renderPendingJobs();
+        }
+    });
+}
+
+function openApprovalModal() {
+    document.getElementById('approvalModal').classList.add('show');
+    renderPendingJobs();
+}
+
+function closeApprovalModal() {
+    document.getElementById('approvalModal').classList.remove('show');
+}
+
+function renderPendingJobs() {
+    const container = document.getElementById('pendingJobsList');
+    const entries = Object.entries(pendingJobs);
+    
+    if (entries.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #888; padding: 40px;">No pending jobs to review!</p>';
+        return;
+    }
+    
+    container.innerHTML = entries.map(([key, job]) => {
+        const ai = job.aiAnalysis || {};
+        return `
+            <div class="pending-job-card" data-key="${key}">
+                <div class="pending-job-header">
+                    <div>
+                        <div class="pending-job-title">${escapeHtml(job.role)}</div>
+                        <div class="pending-job-company">${escapeHtml(job.company)}</div>
+                    </div>
+                    <a href="${job.link}" target="_blank" class="btn btn-secondary" style="padding: 6px 12px; font-size: 11px;">View Job</a>
+                </div>
+                <div class="pending-job-meta">
+                    <span>📍 ${escapeHtml(job.location)}</span>
+                    <span>📅 ${job.yearsExp || '0-2'} yrs exp</span>
+                    <span>🔍 ${job.source || 'scraper'}</span>
+                </div>
+                ${ai.reasoning ? `<div class="pending-job-ai">🤖 AI: ${escapeHtml(ai.reasoning)}</div>` : ''}
+                <div class="pending-job-actions">
+                    <button class="btn btn-approve" onclick="approvePendingJob('${key}')" style="padding: 8px 16px;">✓ Approve</button>
+                    <button class="btn btn-reject" onclick="rejectPendingJob('${key}')" style="padding: 8px 16px;">✗ Reject</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function approvePendingJob(key) {
+    if (!db) return;
+    
+    const job = pendingJobs[key];
+    if (!job) return;
+    
+    showSaving();
+    
+    // Create approved position
+    const position = {
+        company: job.company,
+        role: job.role,
+        location: job.location,
+        link: job.link,
+        yearsExp: job.yearsExp || '',
+        status: 'not-started',
+        notes: job.aiAnalysis?.reasoning ? `AI: ${job.aiAnalysis.reasoning}` : 'Approved from scraper',
+        priority: false,
+        createdAt: Date.now()
+    };
+    
+    // Add to positions and remove from pending
+    db.ref('positions').push(position)
+        .then(() => db.ref('pending_jobs/' + key).remove())
+        .then(() => {
+            showSaved();
+            logHistory(`approved job: ${job.role} at ${job.company}`);
+        })
+        .catch(e => debug('Approve error: ' + e.message));
+}
+
+function rejectPendingJob(key) {
+    if (!db) return;
+    
+    const job = pendingJobs[key];
+    showSaving();
+    
+    db.ref('pending_jobs/' + key).remove()
+        .then(() => {
+            showSaved();
+            if (job) logHistory(`rejected job: ${job.role} at ${job.company}`);
+        })
+        .catch(e => debug('Reject error: ' + e.message));
+}
+
+function approveAllPending() {
+    if (!confirm('Approve ALL pending jobs? This will add them to your positions.')) return;
+    
+    const keys = Object.keys(pendingJobs);
+    if (keys.length === 0) return;
+    
+    showSaving();
+    
+    Promise.all(keys.map(key => {
+        const job = pendingJobs[key];
+        const position = {
+            company: job.company,
+            role: job.role,
+            location: job.location,
+            link: job.link,
+            yearsExp: job.yearsExp || '',
+            status: 'not-started',
+            notes: job.aiAnalysis?.reasoning ? `AI: ${job.aiAnalysis.reasoning}` : 'Approved from scraper',
+            priority: false,
+            createdAt: Date.now()
+        };
+        return db.ref('positions').push(position)
+            .then(() => db.ref('pending_jobs/' + key).remove());
+    }))
+    .then(() => {
+        showSaved();
+        logHistory(`approved ${keys.length} jobs`);
+        closeApprovalModal();
+    })
+    .catch(e => debug('Approve all error: ' + e.message));
+}
+
+function rejectAllPending() {
+    if (!confirm('Reject ALL pending jobs? They will be permanently removed.')) return;
+    
+    const keys = Object.keys(pendingJobs);
+    if (keys.length === 0) return;
+    
+    showSaving();
+    
+    Promise.all(keys.map(key => db.ref('pending_jobs/' + key).remove()))
+    .then(() => {
+        showSaved();
+        logHistory(`rejected ${keys.length} jobs`);
+        closeApprovalModal();
+    })
+    .catch(e => debug('Reject all error: ' + e.message));
+}
+
+// ============================================
+// COLLAPSIBLE REFERRALS
+// ============================================
+function toggleReferrals() {
+    const section = document.getElementById('referralsSection');
+    const container = document.querySelector('.tables-container');
+    
+    section.classList.toggle('collapsed');
+    container.classList.toggle('referrals-collapsed');
+    
+    // Save state
+    localStorage.setItem('referralsCollapsed', section.classList.contains('collapsed'));
+}
+
+// Restore collapsed state on load
+function restoreReferralsState() {
+    const collapsed = localStorage.getItem('referralsCollapsed') === 'true';
+    if (collapsed) {
+        document.getElementById('referralsSection')?.classList.add('collapsed');
+        document.querySelector('.tables-container')?.classList.add('referrals-collapsed');
+    }
+}
+
+// Initialize on page load
+window.addEventListener('load', () => {
+    restoreReferralsState();
+});
+
+// Close approval modal on escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeApprovalModal();
+    }
+});
+
+// Close approval modal when clicking outside
+document.getElementById('approvalModal')?.addEventListener('click', (e) => {
+    if (e.target.classList.contains('approval-modal')) {
+        closeApprovalModal();
+    }
+});
+
+// Add pending jobs listener to setupListeners
+const originalSetupListeners = setupListeners;
+setupListeners = function() {
+    originalSetupListeners();
+    setupPendingJobsListener();
+};
 </script>
 
 </body>

@@ -1,0 +1,133 @@
+{
+  "greenhouse": [
+    {
+      "name": "Databricks",
+      "boardToken": "databricks",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon", "EMEA", "Europe"]
+    },
+    {
+      "name": "Airbnb",
+      "boardToken": "airbnb",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon", "EMEA", "Europe"]
+    },
+    {
+      "name": "Spotify",
+      "boardToken": "spotify",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon", "EMEA", "Europe"]
+    },
+    {
+      "name": "Palantir",
+      "boardToken": "palantir",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon", "EMEA", "Europe"]
+    },
+    {
+      "name": "Uber",
+      "boardToken": "uber",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon", "EMEA", "Europe"]
+    }
+  ],
+  "workday": [
+    {
+      "name": "SAP",
+      "tenant": "saborgsacre",
+      "site": "SAP External",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "Adobe",
+      "tenant": "adobe",
+      "site": "external_experienced",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "Cisco",
+      "tenant": "cisco",
+      "site": "CiscoJobsSearch",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "ServiceNow",
+      "tenant": "servicenow",
+      "site": "Careers",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "NVIDIA",
+      "tenant": "nvidia",
+      "site": "NVIDIAExternalCareerSite",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "ASML",
+      "tenant": "asml",
+      "site": "Careers",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    }
+  ],
+  "custom": [
+    {
+      "name": "Google",
+      "careersUrl": "https://www.google.com/about/careers/applications/jobs/results/",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "Microsoft",
+      "careersUrl": "https://careers.microsoft.com/professionals/us/en/search-results",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "Apple",
+      "careersUrl": "https://jobs.apple.com/en-us/search",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "Amazon",
+      "careersUrl": "https://www.amazon.jobs/en/search",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "Meta",
+      "careersUrl": "https://www.metacareers.com/jobs",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "Tesla",
+      "careersUrl": "https://www.tesla.com/careers/search",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "TikTok",
+      "careersUrl": "https://careers.tiktok.com/position",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "ByteDance",
+      "careersUrl": "https://jobs.bytedance.com/en/position",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    },
+    {
+      "name": "Salesforce",
+      "careersUrl": "https://careers.salesforce.com/en/jobs/",
+      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
+    }
+  ],
+  "filterCriteria": {
+    "maxYearsExperience": 3,
+    "excludeInternships": true,
+    "excludeTechRoles": true,
+    "allowedLanguages": ["english", "portuguese", "spanish", "en", "pt", "es"],
+    "targetRoleKeywords": [
+      "sales", "business development", "account", "bdr", "sdr", 
+      "customer success", "account executive", "account manager",
+      "partnerships", "partner", "marketing", "communications",
+      "operations", "strategy", "consulting", "analyst"
+    ],
+    "excludeRoleKeywords": [
+      "engineer", "engineering", "developer", "software", "swe",
+      "data scientist", "machine learning", "ml", "ai researcher",
+      "devops", "sre", "infrastructure", "backend", "frontend",
+      "full stack", "fullstack", "architect", "technical", "intern",
+      "internship", "phd", "research scientist", "security engineer"
+    ]
+  }
+}
