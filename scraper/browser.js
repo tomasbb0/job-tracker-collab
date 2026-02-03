@@ -9,7 +9,7 @@
  */
 
 import puppeteer from 'puppeteer';
-import companies from './companies.json' assert { type: 'json' };
+import { createRequire } from 'module'; const require = createRequire(import.meta.url); const companies = require('./companies.json');
 
 const TARGET_LOCATIONS = ['Dublin', 'London', 'Amsterdam', 'Madrid', 'Lisbon', 'EMEA', 'Europe'];
 const criteria = companies.filterCriteria;

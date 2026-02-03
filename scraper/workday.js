@@ -4,7 +4,7 @@
  * Uses Workday's public JSON endpoints
  */
 
-import companies from './companies.json' assert { type: 'json' };
+import { createRequire } from 'module'; const require = createRequire(import.meta.url); const companies = require('./companies.json');
 
 /**
  * Fetch with timeout

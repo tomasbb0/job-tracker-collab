@@ -4,7 +4,7 @@
  * API is free and public - no authentication needed for GET requests
  */
 
-import companies from './companies.json' assert { type: 'json' };
+import { createRequire } from 'module'; const require = createRequire(import.meta.url); const companies = require('./companies.json');
 
 const GREENHOUSE_API_BASE = 'https://boards-api.greenhouse.io/v1/boards';
 

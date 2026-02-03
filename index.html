@@ -603,6 +603,7 @@
             Pending Approvals <span class="pending-badge" id="pendingBadge">0</span>
         </button>
         <button class="btn btn-secondary" onclick="cleanDuplicates()" style="background: #dc3545; color: #fff; border: none;">🧹 Remove Duplicates & Bad Links</button>
+        <button class="btn btn-secondary" onclick="addScrapedJobs()" style="background: #28a745; color: #fff; border: none;">➕ Add 11 Scraped Entry-Level Jobs</button>
         <span class="sync-status" id="syncStatus"><span class="sync-dot"></span> Connecting...</span>
     </div>
 
@@ -864,6 +865,63 @@ function cleanDuplicates() {
             const msg = `🧹 Cleaned up ${toDelete.length} entries (duplicates + generic links).`;
             alert(msg);
             logHistory(`cleaned ${toDelete.length} duplicate/generic entries`);
+        });
+    });
+}
+
+// Add scraped entry-level jobs (from scraper)
+function addScrapedJobs() {
+    if (!db) { alert('Not connected to database.'); return; }
+    
+    const scrapedJobs = [
+        { company: 'Airbnb', role: 'Market Associate', location: 'London, UK', yearsExp: '0-2', link: 'https://careers.airbnb.com/positions/7548296?gh_jid=7548296', status: 'Not Started', notes: 'Entry-level market ops' },
+        { company: 'Stripe', role: 'Operations Associate, GTM Accelerate', location: 'Dublin', yearsExp: '0-2', link: 'https://stripe.com/jobs/search?gh_jid=7520686', status: 'Not Started', notes: 'GTM operations' },
+        { company: 'Stripe', role: 'Sales Development Representative, Spanish', location: 'Dublin', yearsExp: '0-2', link: 'https://stripe.com/jobs/search?gh_jid=7385839', status: 'Not Started', notes: 'Spanish market - your language!' },
+        { company: 'Stripe', role: 'UKI Sales Development Representative', location: 'Dublin', yearsExp: '0-2', link: 'https://stripe.com/jobs/search?gh_jid=6669460', status: 'Not Started', notes: 'UK/Ireland market' },
+        { company: 'HubSpot', role: 'BDR Benelux Market (English-speaking)', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/5220991?gh_jid=5220991', status: 'Not Started', notes: 'English only - great fit!' },
+        { company: 'HubSpot', role: 'BDR Benelux Market (English-speaking)', location: 'Remote - Ireland', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/6294339?gh_jid=6294339', status: 'Not Started', notes: 'Remote option available' },
+        { company: 'HubSpot', role: 'Business Development Representative - UKI', location: 'Dublin, Ireland (Flex)', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/4930719?gh_jid=4930719', status: 'Not Started', notes: 'Flexible work' },
+        { company: 'HubSpot', role: 'Business Development Representative - UKI', location: 'Dublin, Ireland', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/4930717?gh_jid=4930717', status: 'Not Started', notes: 'Office-based' },
+        { company: 'HubSpot', role: 'Corporate Business Development Representative', location: 'Dublin, Ireland (Flex)', yearsExp: '0-2', link: 'https://www.hubspot.com/careers/jobs/7182430?gh_jid=7182430', status: 'Not Started', notes: 'Corporate BDR' },
+        { company: 'Cloudflare', role: 'Business Development Representative', location: 'Hybrid (London/Remote)', yearsExp: '0-2', link: 'https://boards.greenhouse.io/cloudflare/jobs/7122629?gh_jid=7122629', status: 'Not Started', notes: 'Tech company, hybrid' },
+        { company: 'Cloudflare', role: 'Business Development Representative', location: 'Hybrid (London/Remote)', yearsExp: '0-2', link: 'https://boards.greenhouse.io/cloudflare/jobs/7400242?gh_jid=7400242', status: 'Not Started', notes: 'Another BDR opening' }
+    ];
+    
+    if (!confirm(`Add ${scrapedJobs.length} verified entry-level jobs (BDR/SDR) from the scraper?\n\nCompanies: Airbnb, Stripe, HubSpot, Cloudflare\n\nThese have DIRECT application links.`)) return;
+    
+    showSaving();
+    
+    // Check for existing jobs to avoid duplicates
+    db.ref('positions').once('value').then((snapshot) => {
+        const existing = snapshot.val() || {};
+        const existingSigs = new Set();
+        Object.values(existing).forEach(p => {
+            const sig = (p.company + '|' + p.role + '|' + p.link).toLowerCase();
+            existingSigs.add(sig);
+        });
+        
+        let added = 0;
+        let skipped = 0;
+        const promises = [];
+        
+        scrapedJobs.forEach(job => {
+            const sig = (job.company + '|' + job.role + '|' + job.link).toLowerCase();
+            if (existingSigs.has(sig)) {
+                skipped++;
+            } else {
+                added++;
+                promises.push(db.ref('positions').push({
+                    ...job,
+                    priority: false,
+                    timestamp: Date.now()
+                }));
+            }
+        });
+        
+        Promise.all(promises).then(() => {
+            showSaved();
+            alert(`✅ Added ${added} new jobs! (Skipped ${skipped} duplicates)`);
+            logHistory(`added ${added} scraped entry-level jobs from Airbnb, Stripe, HubSpot, Cloudflare`);
         });
     });
 }

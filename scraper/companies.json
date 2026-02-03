@@ -3,27 +3,101 @@
     {
       "name": "Databricks",
       "boardToken": "databricks",
-      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon", "EMEA", "Europe"]
+      "locations": [
+        "Dublin",
+        "London",
+        "Amsterdam",
+        "Madrid",
+        "Lisbon",
+        "EMEA",
+        "Europe",
+        "Ireland",
+        "UK",
+        "Remote"
+      ]
     },
     {
       "name": "Airbnb",
       "boardToken": "airbnb",
-      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon", "EMEA", "Europe"]
+      "locations": [
+        "Dublin",
+        "London",
+        "Amsterdam",
+        "Madrid",
+        "Lisbon",
+        "EMEA",
+        "Europe",
+        "Ireland",
+        "UK",
+        "Remote"
+      ]
     },
     {
-      "name": "Spotify",
-      "boardToken": "spotify",
-      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon", "EMEA", "Europe"]
+      "name": "Stripe",
+      "boardToken": "stripe",
+      "locations": [
+        "Dublin",
+        "London",
+        "Amsterdam",
+        "Madrid",
+        "Lisbon",
+        "EMEA",
+        "Europe",
+        "Ireland",
+        "UK",
+        "Remote"
+      ]
     },
     {
-      "name": "Palantir",
-      "boardToken": "palantir",
-      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon", "EMEA", "Europe"]
+      "name": "Cloudflare",
+      "boardToken": "cloudflare",
+      "locations": [
+        "Dublin",
+        "London",
+        "Amsterdam",
+        "Madrid",
+        "Lisbon",
+        "EMEA",
+        "Europe",
+        "Ireland",
+        "UK",
+        "Remote",
+        "Hybrid",
+        "Distributed"
+      ]
     },
     {
-      "name": "Uber",
-      "boardToken": "uber",
-      "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon", "EMEA", "Europe"]
+      "name": "Twilio",
+      "boardToken": "twilio",
+      "locations": [
+        "Dublin",
+        "London",
+        "Amsterdam",
+        "Madrid",
+        "Lisbon",
+        "EMEA",
+        "Europe",
+        "Ireland",
+        "UK",
+        "Remote"
+      ]
+    },
+    {
+      "name": "HubSpot",
+      "boardToken": "hubspotjobs",
+      "locations": [
+        "Dublin",
+        "London",
+        "Amsterdam",
+        "Madrid",
+        "Lisbon",
+        "EMEA",
+        "Europe",
+        "Ireland",
+        "UK",
+        "Remote",
+        "Flex"
+      ]
     }
   ],
   "workday": [
@@ -111,23 +185,72 @@
       "locations": ["Dublin", "London", "Amsterdam", "Madrid", "Lisbon"]
     }
   ],
+  "lever": [
+    {
+      "name": "Spotify",
+      "slug": "spotify",
+      "locations": [
+        "Dublin",
+        "London",
+        "Amsterdam",
+        "Madrid",
+        "Lisbon",
+        "EMEA",
+        "Europe",
+        "Ireland",
+        "United Kingdom",
+        "UK",
+        "Remote"
+      ]
+    }
+  ],
   "filterCriteria": {
     "maxYearsExperience": 3,
     "excludeInternships": true,
     "excludeTechRoles": true,
     "allowedLanguages": ["english", "portuguese", "spanish", "en", "pt", "es"],
     "targetRoleKeywords": [
-      "sales", "business development", "account", "bdr", "sdr", 
-      "customer success", "account executive", "account manager",
-      "partnerships", "partner", "marketing", "communications",
-      "operations", "strategy", "consulting", "analyst"
+      "sales",
+      "business development",
+      "account",
+      "bdr",
+      "sdr",
+      "customer success",
+      "account executive",
+      "account manager",
+      "partnerships",
+      "partner",
+      "marketing",
+      "communications",
+      "operations",
+      "strategy",
+      "consulting",
+      "analyst"
     ],
     "excludeRoleKeywords": [
-      "engineer", "engineering", "developer", "software", "swe",
-      "data scientist", "machine learning", "ml", "ai researcher",
-      "devops", "sre", "infrastructure", "backend", "frontend",
-      "full stack", "fullstack", "architect", "technical", "intern",
-      "internship", "phd", "research scientist", "security engineer"
+      "engineer",
+      "engineering",
+      "developer",
+      "software",
+      "swe",
+      "data scientist",
+      "machine learning",
+      "ml",
+      "ai researcher",
+      "devops",
+      "sre",
+      "infrastructure",
+      "backend",
+      "frontend",
+      "full stack",
+      "fullstack",
+      "architect",
+      "technical",
+      "intern",
+      "internship",
+      "phd",
+      "research scientist",
+      "security engineer"
     ]
   }
 }

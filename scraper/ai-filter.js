@@ -4,7 +4,7 @@
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import companies from './companies.json' assert { type: 'json' };
+import { createRequire } from 'module'; const require = createRequire(import.meta.url); const companies = require('./companies.json');
 
 // Initialize Gemini with API key from environment
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
